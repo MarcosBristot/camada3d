@@ -19,7 +19,7 @@ const nav = [
   { to: '/dashboard/empresa', label: 'Empresa', curto: 'Empresa', icon: Building2 },
 ]
 
-/** Logo + nome da empresa (ou a marca Camada3D enquanto não houver perfil). */
+/** Logo + nome da empresa (ou a marca farmOps 3D enquanto não houver perfil). */
 function Marca() {
   const { data: perfil } = usePerfil()
   if (!perfil) return <Logo />

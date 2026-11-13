@@ -251,11 +251,11 @@ otp_expiry = 3600
 
 # Modelos de e-mail em português (os mesmos devem ser colados no painel do Supabase da nuvem)
 [auth.email.template.confirmation]
-subject = "Confirme seu e-mail no Camada3D"
+subject = "Confirme seu e-mail no farmOps 3D"
 content_path = "./supabase/templates/confirmacao.html"
 
 [auth.email.template.recovery]
-subject = "Redefinir sua senha do Camada3D"
+subject = "Redefinir sua senha do farmOps 3D"
 content_path = "./supabase/templates/recuperacao.html"
 
 # Uncomment to customize email template

@@ -32,7 +32,7 @@ export function Navbar() {
             : 'border-transparent'
         }`}
       >
-        <a href="#topo" aria-label="Camada3D — início">
+        <a href="#topo" aria-label="farmOps 3D — início">
           <Logo />
         </a>
 

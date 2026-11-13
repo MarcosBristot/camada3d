@@ -43,7 +43,7 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null)
 
-const DEMO_USER: Usuario = { id: DEMO_USER_ID, email: 'demonstracao@camada3d.local', criadoEm: null, termosVersao: null, termosAceitosEm: null }
+const DEMO_USER: Usuario = { id: DEMO_USER_ID, email: 'demonstracao@farmops3d.local', criadoEm: null, termosVersao: null, termosAceitosEm: null }
 
 const traduzir = (msg: string) => {
   if (/invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos.'

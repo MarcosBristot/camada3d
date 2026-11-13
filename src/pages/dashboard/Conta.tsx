@@ -63,7 +63,7 @@ export default function Conta() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${LEGAL.servico.toLowerCase()}-meus-dados-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = `${LEGAL.servico.toLowerCase().replace(/[^a-z0-9]+/g, '')}-meus-dados-${new Date().toISOString().slice(0, 10)}.json`
       a.click()
       URL.revokeObjectURL(url)
       notificar('sucesso', 'Arquivo com seus dados baixado.')

@@ -1,6 +1,6 @@
-# Manual de publicação e operação do Camada3D
+# Manual de publicação e operação do farmOps 3D
 
-Guia passo a passo para colocar o Camada3D no ar para outras pessoas usarem e mantê-lo funcionando.
+Guia passo a passo para colocar o farmOps 3D no ar para outras pessoas usarem e mantê-lo funcionando.
 Siga na ordem: cada passo depende do anterior. Tempo estimado: **1h a 1h30** na primeira vez.
 
 ---
@@ -11,7 +11,7 @@ Siga na ordem: cada passo depende do anterior. Tempo estimado: **1h a 1h30** na 
  Usuário ──► Vercel (site)  ──►  Supabase (login, banco de dados, fotos)
                  ▲                         │
    git push ─────┘                         └──► Gmail (e-mails de confirmação e de senha)
- (GitHub: MarcosBristot/camada3d)
+ (GitHub: MarcosBristot/farmops3d)
 ```
 
 | Serviço  | Para quê                                     | Plano     |
@@ -25,7 +25,7 @@ Siga na ordem: cada passo depende do anterior. Tempo estimado: **1h a 1h30** na 
 
 ## Passo 0 — Antes de começar
 
-- [ ] Acesso ao GitHub (repositório `MarcosBristot/camada3d`) ✅ já feito
+- [ ] Acesso ao GitHub (repositório `MarcosBristot/farmops3d`) ✅ já feito
 - [ ] Projeto Supabase **camada 3d** criado e linkado ✅ já feito
 - [ ] Migrations 1 e 2 aplicadas na nuvem ✅ já feito
 - [ ] Criar o e-mail do serviço (Passo 1)
@@ -40,24 +40,24 @@ Siga na ordem: cada passo depende do anterior. Tempo estimado: **1h a 1h30** na 
 
 Esse e-mail aparece no site como contato e canal de privacidade, e também envia os e-mails automáticos.
 
-1. Crie uma conta nova em <https://accounts.google.com/signup>, por exemplo `camada3d.contato@gmail.com`.
+1. Crie uma conta nova em <https://accounts.google.com/signup>, por exemplo `farmops3d@gmail.com`.
 2. Ative a **verificação em duas etapas**: <https://myaccount.google.com/signinoptions/twosv>.
 3. Crie uma **senha de app** (é ela que o Supabase usa para enviar e-mails):
    - acesse <https://myaccount.google.com/apppasswords>;
-   - nome do app: `Supabase Camada3D`;
+   - nome do app: `Supabase farmOps 3D`;
    - copie a senha de 16 letras que aparecer e guarde num lugar seguro (gerenciador de senhas). Ela não é mostrada de novo.
 
 ---
 
-## Passo 2 — Colocar o e-mail nos documentos legais
+## Passo 2 — Colocar o e-mail nos documentos legais ✅ feito (`farmops3d@gmail.com`)
 
 1. Abra `src/config/legal.ts` e troque a linha:
    ```ts
-   email: P('e-mail de suporte, ex.: contato@camada3d.com.br'),
+   email: P('e-mail de suporte'),
    ```
    por:
    ```ts
-   email: 'camada3d.contato@gmail.com',
+   email: 'farmops3d@gmail.com',
    ```
 2. Confira:
    ```bash
@@ -99,7 +99,7 @@ npx supabase db query --remote --read-only "select version from supabase_migrati
 
 1. Acesse <https://vercel.com/signup> e entre com **Continue with GitHub**.
 2. Clique em **Add New… → Project**.
-3. Em *Import Git Repository*, encontre `camada3d`. Se não aparecer, clique em **Adjust GitHub App Permissions** e libere o repositório (ele é privado).
+3. Em *Import Git Repository*, encontre `farmops3d`. Se não aparecer, clique em **Adjust GitHub App Permissions** e libere o repositório (ele é privado).
 4. Clique em **Import**. A Vercel detecta tudo pelo `vercel.json`, então **não altere** Framework, Build Command nem Output Directory.
 5. Abra **Environment Variables** e adicione as duas:
 
@@ -127,7 +127,7 @@ Tudo no painel do Supabase, projeto **camada 3d** (<https://supabase.com/dashboa
 
 ### 5.1 Endereços do site
 **Authentication → URL Configuration**
-- **Site URL:** o endereço da Vercel, ex.: `https://farmops3d.vercel.app`
+- **Site URL:** exatamente `https://farmops3d.vercel.app`, **com** `https://` e **sem** `/**` no final. (Com `/**` aqui, os links dos e-mails levam para uma página inexistente.)
 - **Redirect URLs:** adicione
   - `https://farmops3d.vercel.app/**`
   - `http://localhost:5173/**` (para continuar testando no seu computador)
@@ -147,11 +147,11 @@ Sem SMTP próprio, o Supabase só envia e-mails para os membros do seu time, ou 
 
 | Campo | Valor |
 |-------|-------|
-| Sender email | `camada3d.contato@gmail.com` |
-| Sender name | `Camada3D` |
+| Sender email | `farmops3d@gmail.com` |
+| Sender name | `farmOps 3D` |
 | Host | `smtp.gmail.com` |
 | Port | `587` |
-| Username | `camada3d.contato@gmail.com` |
+| Username | `farmops3d@gmail.com` |
 | Password | a **senha de app** do Passo 1 (não a senha normal do Gmail) |
 | Minimum interval | `60` segundos |
 
@@ -162,8 +162,8 @@ Depois, em **Authentication → Rate Limits**, aumente *Rate limit for sending e
 
 | Modelo | Assunto | Conteúdo (cole o arquivo inteiro) |
 |--------|---------|-----------------------------------|
-| **Confirm signup** | `Confirme seu e-mail no Camada3D` | `supabase/templates/confirmacao.html` |
-| **Reset password** | `Redefinir sua senha do Camada3D` | `supabase/templates/recuperacao.html` |
+| **Confirm signup** | `Confirme seu e-mail no farmOps 3D` | `supabase/templates/confirmacao.html` |
+| **Reset password** | `Redefinir sua senha do farmOps 3D` | `supabase/templates/recuperacao.html` |
 
 Salve cada um.
 

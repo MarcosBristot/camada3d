@@ -10,7 +10,7 @@
 
 export const LEGAL = {
   /** Nome comercial do serviço (como aparece para o usuário). */
-  servico: 'Camada3D',
+  servico: 'farmOps 3D',
 
   /**
    * Quem opera o serviço e responde por ele (controlador dos dados das contas).
@@ -88,7 +88,7 @@ export const LEGAL = {
   },
 
   /** Versão dos documentos. Mude a data e a versão sempre que alterar o conteúdo dos textos. */
-  versao: '1.0',
+  versao: '1.1',
   vigenciaDesde: '2026-11-13',
 }
 
