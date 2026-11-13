@@ -12,11 +12,11 @@ interface Props {
 }
 
 const base =
-  'group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-400'
+  'group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-7 py-3.5 text-sm font-semibold tracking-wide transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-400'
 
 const variants = {
   primary:
-    'bg-gradient-to-r from-orange-500 to-amber-400 text-zinc-950 shadow-[0_0_40px_-8px_rgba(251,146,60,0.7)] hover:shadow-[0_0_60px_-6px_rgba(251,146,60,0.9)]',
+    'bg-gradient-to-r from-brand-500 to-accent-400 text-brand-fg shadow-[0_0_40px_-8px_color-mix(in_oklab,var(--brand)_70%,transparent)] hover:shadow-[0_0_60px_-6px_color-mix(in_oklab,var(--brand)_90%,transparent)]',
   ghost: 'border border-white/15 bg-white/[0.03] text-zinc-100 backdrop-blur hover:border-white/30 hover:bg-white/[0.07]',
 }
 
@@ -44,7 +44,7 @@ export function MagneticButton({ children, to, href, variant = 'primary', classN
     <>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-white/40 opacity-0 blur-md transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100"
+        className="pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-[#fff]/40 opacity-0 blur-md transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100"
       />
       <span className="relative z-10 inline-flex items-center gap-2">{children}</span>
     </>

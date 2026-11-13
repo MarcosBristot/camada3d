@@ -36,7 +36,7 @@ export function AuthScreen() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
       <div className="bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-96 w-[600px] -translate-x-1/2 rounded-full bg-orange-500/15 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-96 w-[600px] -translate-x-1/2 rounded-full bg-brand-500/15 blur-[120px]" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -92,7 +92,7 @@ export function AuthScreen() {
 
               <p className="text-center text-sm text-zinc-400">
                 {modo === 'entrar' ? 'Ainda não tem conta? ' : 'Já tem conta? '}
-                <button type="button" onClick={() => { setModo(modo === 'entrar' ? 'cadastrar' : 'entrar'); setErro(null) }} className="font-medium text-orange-300 hover:text-orange-200">
+                <button type="button" onClick={() => { setModo(modo === 'entrar' ? 'cadastrar' : 'entrar'); setErro(null) }} className="font-medium text-brand-300 hover:text-brand-200">
                   {modo === 'entrar' ? 'Cadastre-se' : 'Entrar'}
                 </button>
               </p>

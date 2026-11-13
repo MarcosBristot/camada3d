@@ -1,8 +1,90 @@
 @import "tailwindcss";
 
+/*
+ * TEMA DINÂMICO
+ * --brand / --accent / --brand-fg são definidos em runtime (ThemeProvider) a partir da logo da empresa.
+ * Toda a escala brand-50…950 e accent-* é derivada deles com color-mix, então trocar uma cor
+ * atualiza o site inteiro.
+ */
+:root {
+  --brand: #f97316;
+  --accent: #fbbf24;
+  --brand-fg: #18181b;
+  color-scheme: dark;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+
+  --color-brand-50: color-mix(in oklab, var(--brand) 12%, white);
+  --color-brand-100: color-mix(in oklab, var(--brand) 22%, white);
+  --color-brand-200: color-mix(in oklab, var(--brand) 40%, white);
+  --color-brand-300: color-mix(in oklab, var(--brand) 62%, white);
+  --color-brand-400: color-mix(in oklab, var(--brand) 82%, white);
+  --color-brand-500: var(--brand);
+  --color-brand-600: color-mix(in oklab, var(--brand) 82%, black);
+  --color-brand-700: color-mix(in oklab, var(--brand) 64%, black);
+  --color-brand-800: color-mix(in oklab, var(--brand) 46%, black);
+  --color-brand-900: color-mix(in oklab, var(--brand) 32%, black);
+  --color-brand-950: color-mix(in oklab, var(--brand) 18%, black);
+  --color-brand-fg: var(--brand-fg);
+
+  --color-accent-200: color-mix(in oklab, var(--accent) 45%, white);
+  --color-accent-300: color-mix(in oklab, var(--accent) 70%, white);
+  --color-accent-400: var(--accent);
+  --color-accent-500: color-mix(in oklab, var(--accent) 85%, black);
+}
+
+/*
+ * MODO CLARO
+ * A interface foi escrita em tons de zinc sobre fundo escuro. No modo claro a escala é
+ * invertida (zinc-950 vira o fundo claro, zinc-100 vira o texto escuro), "white" das
+ * sobreposições translúcidas vira preto, e tons claros de marca/status ficam escuros
+ * para manter contraste sobre fundo branco.
+ */
+html.light {
+  color-scheme: light;
+
+  --color-zinc-50: oklch(14.1% 0.005 285.823);
+  --color-zinc-100: oklch(21% 0.006 285.885);
+  --color-zinc-200: oklch(27.4% 0.006 286.033);
+  --color-zinc-300: oklch(37% 0.013 285.805);
+  --color-zinc-400: oklch(44.2% 0.017 285.786);
+  --color-zinc-500: oklch(52% 0.016 285.938);
+  --color-zinc-600: oklch(62% 0.015 286.067);
+  --color-zinc-700: oklch(87.1% 0.006 286.286);
+  --color-zinc-800: oklch(92% 0.004 286.32);
+  --color-zinc-900: oklch(100% 0 0);
+  --color-zinc-950: oklch(97.2% 0.002 286.375);
+  --color-white: #000;
+
+  --color-brand-50: color-mix(in oklab, var(--brand) 30%, black);
+  --color-brand-100: color-mix(in oklab, var(--brand) 40%, black);
+  --color-brand-200: color-mix(in oklab, var(--brand) 55%, black);
+  --color-brand-300: color-mix(in oklab, var(--brand) 70%, black);
+  --color-brand-400: color-mix(in oklab, var(--brand) 85%, black);
+  --color-accent-200: color-mix(in oklab, var(--accent) 50%, black);
+  --color-accent-300: color-mix(in oklab, var(--accent) 65%, black);
+
+  --color-emerald-100: oklch(37.8% 0.077 168.94);
+  --color-emerald-200: oklch(43.2% 0.095 166.913);
+  --color-emerald-300: oklch(50.8% 0.118 165.612);
+  --color-emerald-400: oklch(59.6% 0.145 163.225);
+  --color-red-100: oklch(39.6% 0.141 25.723);
+  --color-red-200: oklch(44.4% 0.177 26.899);
+  --color-red-300: oklch(50.5% 0.213 27.518);
+  --color-red-400: oklch(57.7% 0.245 27.325);
+  --color-amber-100: oklch(41.4% 0.112 45.904);
+  --color-amber-200: oklch(47.3% 0.137 46.201);
+  --color-amber-300: oklch(55.5% 0.163 48.998);
+  --color-amber-400: oklch(66.6% 0.179 58.318);
+  --color-cyan-300: oklch(52% 0.105 223.128);
+  --color-cyan-400: oklch(60.9% 0.126 221.723);
+  --color-sky-300: oklch(50% 0.134 242.749);
+  --color-sky-400: oklch(58.8% 0.158 241.966);
+  --color-violet-300: oklch(49.1% 0.27 292.581);
+  --color-violet-400: oklch(54.1% 0.281 293.009);
 }
 
 html {
@@ -13,22 +95,29 @@ body {
   background-color: var(--color-zinc-950);
   color: var(--color-zinc-100);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
-  background: rgb(251 146 60 / 0.35);
+  background: color-mix(in oklab, var(--brand) 35%, transparent);
 }
 
 /* Grade sutil que lembra a mesa de impressão */
 .bg-grid {
+  --grid-line: color-mix(in oklab, var(--color-white) 5%, transparent);
   background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 
 .text-gradient {
-  background: linear-gradient(90deg, #fb923c 0%, #fbbf24 55%, #fde68a 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-brand-400) 0%,
+    var(--color-accent-400) 55%,
+    var(--color-accent-200) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -36,10 +125,11 @@ body {
 
 /* Linhas horizontais (camadas) para fundos decorativos */
 .bg-layers {
+  --layer: color-mix(in oklab, var(--brand) 12%, transparent);
   background-image: repeating-linear-gradient(
     to bottom,
-    rgb(251 146 60 / 0.10) 0px,
-    rgb(251 146 60 / 0.10) 2px,
+    var(--layer) 0px,
+    var(--layer) 2px,
     transparent 2px,
     transparent 10px
   );

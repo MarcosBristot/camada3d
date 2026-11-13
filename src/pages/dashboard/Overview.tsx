@@ -21,7 +21,7 @@ interface StatProps {
 }
 
 const tones = {
-  orange: 'from-orange-500/20 text-orange-300 ring-orange-400/20',
+  orange: 'from-brand-500/20 text-brand-300 ring-brand-400/20',
   red: 'from-red-500/15 text-red-300 ring-red-400/20',
   emerald: 'from-emerald-500/15 text-emerald-300 ring-emerald-400/20',
   sky: 'from-sky-500/15 text-sky-300 ring-sky-400/20',

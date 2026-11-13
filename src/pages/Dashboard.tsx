@@ -4,8 +4,10 @@ import { AuthScreen } from '../components/dashboard/AuthScreen'
 import { DashboardLayout } from '../components/dashboard/DashboardLayout'
 import { AuthProvider, useAuth } from '../contexts/AuthContext'
 import Calculator from './dashboard/Calculator'
+import Empresa from './dashboard/Empresa'
 import Expenses from './dashboard/Expenses'
 import Overview from './dashboard/Overview'
+import Pedidos from './dashboard/Pedidos'
 import Products from './dashboard/Products'
 
 function DashboardRoutes() {
@@ -25,9 +27,11 @@ function DashboardRoutes() {
     <Routes>
       <Route element={<DashboardLayout />}>
         <Route index element={<Overview />} />
+        <Route path="pedidos" element={<Pedidos />} />
         <Route path="calculadora" element={<Calculator />} />
         <Route path="produtos" element={<Products />} />
         <Route path="despesas" element={<Expenses />} />
+        <Route path="empresa" element={<Empresa />} />
         <Route path="*" element={<Overview />} />
       </Route>
     </Routes>

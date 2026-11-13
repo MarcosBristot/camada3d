@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ToastProvider } from './components/ui/Toast'
+import { ThemeProvider } from './contexts/ThemeContext'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -18,11 +19,13 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         {/* Respeita "reduzir movimento" do sistema operacional */}
-        <MotionConfig reducedMotion="user">
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </MotionConfig>
+        <ThemeProvider>
+          <MotionConfig reducedMotion="user">
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </MotionConfig>
+        </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>,

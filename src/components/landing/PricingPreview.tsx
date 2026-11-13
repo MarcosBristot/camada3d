@@ -28,7 +28,7 @@ function Slider({ icon, label, value, min, max, step, suffix, onChange }: Slider
     <div>
       <div className="mb-3 flex items-center justify-between text-sm">
         <label htmlFor={id} className="flex items-center gap-2 text-zinc-300">
-          <span className="text-orange-300">{icon}</span>
+          <span className="text-brand-300">{icon}</span>
           {label}
         </label>
         <span className="rounded-lg bg-white/5 px-2.5 py-1 font-mono text-zinc-100">
@@ -43,9 +43,9 @@ function Slider({ icon, label, value, min, max, step, suffix, onChange }: Slider
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full accent-orange-500"
+        className="h-2 w-full cursor-pointer appearance-none rounded-full accent-brand-500"
         style={{
-          background: `linear-gradient(90deg, #f97316 0%, #fbbf24 ${pct}%, rgb(255 255 255 / 0.08) ${pct}%)`,
+          background: `linear-gradient(90deg, var(--brand) 0%, var(--accent) ${pct}%, color-mix(in oklab, var(--color-white) 8%, transparent) ${pct}%)`,
         }}
       />
     </div>
@@ -70,18 +70,18 @@ export function PricingPreview() {
 
   const total = r.precoSugerido || 1
   const parts = [
-    { label: 'Material', value: r.custoMaterial, color: 'bg-orange-500' },
+    { label: 'Material', value: r.custoMaterial, color: 'bg-brand-500' },
     { label: 'Energia', value: r.custoEnergia, color: 'bg-cyan-400' },
     { label: 'Lucro', value: r.lucroEstimado, color: 'bg-emerald-400' },
   ]
 
   return (
     <section id="precificacao" className="relative scroll-mt-24 py-28 md:py-36">
-      <div className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 mx-auto h-96 max-w-4xl -translate-y-1/2 rounded-full bg-orange-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 mx-auto h-96 max-w-4xl -translate-y-1/2 rounded-full bg-brand-500/10 blur-[120px]" />
 
       <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 md:grid-cols-2">
         <Reveal>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-400">Precificação</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Precificação</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight md:text-5xl">
             Quanto cobrar? <br />
             <span className="text-gradient">Mexa e descubra.</span>
@@ -114,8 +114,8 @@ export function PricingPreview() {
                 <p className="text-xs uppercase tracking-wider text-zinc-500">Custo base</p>
                 <AnimatedNumber value={r.custoBase} className="mt-1 block font-display text-2xl font-semibold" />
               </div>
-              <div className="rounded-2xl bg-gradient-to-br from-orange-500/15 to-amber-400/5 p-4 ring-1 ring-orange-400/25">
-                <p className="text-xs uppercase tracking-wider text-orange-200/80">Preço sugerido</p>
+              <div className="rounded-2xl bg-gradient-to-br from-brand-500/15 to-accent-400/5 p-4 ring-1 ring-brand-400/25">
+                <p className="text-xs uppercase tracking-wider text-brand-200/80">Preço sugerido</p>
                 <AnimatedNumber value={r.precoSugerido} className="text-gradient mt-1 block font-display text-2xl font-bold" />
               </div>
             </div>

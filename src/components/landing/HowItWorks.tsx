@@ -41,7 +41,7 @@ export function HowItWorks() {
 
       <div className="relative mx-auto grid max-w-6xl gap-16 px-6 md:grid-cols-[0.9fr_1.1fr]">
         <Reveal className="md:sticky md:top-32 md:self-start">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-400">Como funciona</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Como funciona</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight md:text-5xl">
             Três passos. <br />
             <span className="text-gradient">Zero achismo.</span>
@@ -56,14 +56,14 @@ export function HowItWorks() {
           <div className="absolute bottom-6 left-6 top-6 w-px bg-white/10" />
           <motion.div
             style={{ scaleY: lineScale }}
-            className="absolute bottom-6 left-6 top-6 w-px origin-top bg-gradient-to-b from-orange-500 to-amber-300"
+            className="absolute bottom-6 left-6 top-6 w-px origin-top bg-gradient-to-b from-brand-500 to-accent-300"
           />
 
           <ol className="space-y-10">
             {steps.map((s, i) => (
               <Reveal key={s.title} delay={i * 0.1} x={30} y={0}>
                 <li className="relative flex gap-6">
-                  <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-zinc-900 text-orange-300 shadow-lg shadow-black/40">
+                  <span className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-zinc-900 text-brand-300 shadow-lg shadow-black/40">
                     <s.icon size={20} />
                   </span>
                   <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 transition-colors hover:border-white/20">

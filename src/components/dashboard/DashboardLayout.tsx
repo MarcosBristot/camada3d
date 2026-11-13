@@ -1,22 +1,61 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Calculator, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, Wallet } from 'lucide-react'
+import { Building2, Calculator, ClipboardList, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, Wallet } from 'lucide-react'
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTema } from '../../contexts/ThemeContext'
+import { usePerfil, useSalvarPerfil } from '../../hooks/useData'
 import { reiniciarDemo } from '../../lib/api/demoApi'
 import { Logo } from '../ui/Logo'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 const nav = [
-  { to: '/dashboard', label: 'Visão geral', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/calculadora', label: 'Calculadora', icon: Calculator },
-  { to: '/dashboard/produtos', label: 'Produtos', icon: Package },
-  { to: '/dashboard/despesas', label: 'Despesas', icon: Wallet },
+  { to: '/dashboard', label: 'Visão geral', curto: 'Início', icon: LayoutDashboard, end: true },
+  { to: '/dashboard/pedidos', label: 'Pedidos', curto: 'Pedidos', icon: ClipboardList },
+  { to: '/dashboard/calculadora', label: 'Calculadora', curto: 'Calcular', icon: Calculator },
+  { to: '/dashboard/produtos', label: 'Produtos', curto: 'Produtos', icon: Package },
+  { to: '/dashboard/despesas', label: 'Despesas', curto: 'Despesas', icon: Wallet },
+  { to: '/dashboard/empresa', label: 'Empresa', curto: 'Empresa', icon: Building2 },
 ]
+
+/** Logo + nome da empresa (ou a marca Camada3D enquanto não houver perfil). */
+function Marca() {
+  const { data: perfil } = usePerfil()
+  if (!perfil) return <Logo />
+  return (
+    <span className="flex min-w-0 items-center gap-2.5">
+      {perfil.logo_url ? (
+        <img src={perfil.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-xl bg-white/5 object-contain p-0.5 ring-1 ring-white/10" />
+      ) : (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 font-display text-sm font-bold text-brand-fg">
+          {perfil.nome.slice(0, 2).toUpperCase()}
+        </span>
+      )}
+      <span className="truncate font-display text-lg font-bold tracking-tight">{perfil.nome}</span>
+    </span>
+  )
+}
 
 export function DashboardLayout() {
   const { user, demo, sair } = useAuth()
   const qc = useQueryClient()
   const { pathname } = useLocation()
+  const { data: perfil } = usePerfil()
+  const salvarPerfil = useSalvarPerfil()
+  const { definirTema } = useTema()
+
+  // As cores e o modo salvos no perfil valem para o site todo
+  useEffect(() => {
+    if (perfil) definirTema({ primaria: perfil.cor_primaria, secundaria: perfil.cor_secundaria, modo: perfil.tema })
+  }, [perfil, definirTema])
+
+  const persistirModo = (modo: 'claro' | 'escuro') => {
+    if (!perfil) return
+    salvarPerfil.mutate({
+      input: { nome: perfil.nome, cor_primaria: perfil.cor_primaria, cor_secundaria: perfil.cor_secundaria, tema: modo },
+    })
+  }
 
   const handleSair = async () => {
     await sair()
@@ -32,9 +71,12 @@ export function DashboardLayout() {
     <div className="min-h-screen bg-zinc-950">
       {/* Sidebar (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-white/5 bg-zinc-950/80 px-4 py-6 backdrop-blur-xl lg:flex">
-        <NavLink to="/" className="px-3">
-          <Logo />
-        </NavLink>
+        <div className="flex items-center justify-between gap-2 px-3">
+          <NavLink to="/dashboard" className="min-w-0">
+            <Marca />
+          </NavLink>
+          <ThemeToggle onChange={persistirModo} />
+        </div>
 
         <nav className="mt-10 flex flex-col gap-1">
           {nav.map((item) => (
@@ -57,7 +99,7 @@ export function DashboardLayout() {
                       transition={{ type: 'spring', stiffness: 400, damping: 34 }}
                     />
                   )}
-                  <item.icon size={18} className={`relative ${isActive ? 'text-orange-400' : ''}`} />
+                  <item.icon size={18} className={`relative ${isActive ? 'text-brand-400' : ''}`} />
                   <span className="relative">{item.label}</span>
                 </>
               )}
@@ -91,16 +133,17 @@ export function DashboardLayout() {
       </aside>
 
       {/* Topo (mobile) */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-white/5 bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
-        <NavLink to="/">
-          <Logo />
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-white/5 bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
+        <NavLink to="/dashboard" className="min-w-0">
+          <Marca />
         </NavLink>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {demo && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/10 px-2.5 py-1 text-[11px] font-medium text-amber-300 ring-1 ring-amber-400/25">
               <FlaskConical size={12} /> Demo
             </span>
           )}
+          <ThemeToggle onChange={persistirModo} />
           {!demo && (
             <button onClick={handleSair} aria-label="Sair" className="rounded-lg p-2 text-zinc-400">
               <LogOut size={18} />
@@ -116,18 +159,18 @@ export function DashboardLayout() {
       </main>
 
       {/* Navegação inferior (mobile) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/5 bg-zinc-950/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-white/5 bg-zinc-950/90 px-1 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 backdrop-blur-xl lg:hidden">
         {nav.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium ${isActive ? 'text-orange-400' : 'text-zinc-500'}`
+              `flex flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium ${isActive ? 'text-brand-400' : 'text-zinc-500'}`
             }
           >
-            <item.icon size={20} />
-            {item.label}
+            <item.icon size={19} />
+            {item.curto}
           </NavLink>
         ))}
       </nav>

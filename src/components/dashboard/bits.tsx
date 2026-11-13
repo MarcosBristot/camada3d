@@ -11,7 +11,7 @@ export function ProductThumb({ src, alt, size = 'md' }: { src: string | null | u
   ) : (
     <span
       aria-hidden
-      className={`${cls} flex shrink-0 items-center justify-center bg-gradient-to-br from-orange-500/20 to-zinc-800 text-orange-300/80 ring-1 ring-white/10`}
+      className={`${cls} flex shrink-0 items-center justify-center bg-gradient-to-br from-brand-500/20 to-zinc-800 text-brand-300/80 ring-1 ring-white/10`}
     >
       <Box size={size === 'sm' ? 16 : 20} />
     </span>

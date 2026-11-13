@@ -16,7 +16,7 @@ export function MaterialsMarquee() {
           {row.map((m, i) => (
             <span key={i} className="flex items-center gap-12 whitespace-nowrap pr-12 font-display text-lg text-zinc-500">
               {m}
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500/60" />
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500/60" />
             </span>
           ))}
         </motion.div>

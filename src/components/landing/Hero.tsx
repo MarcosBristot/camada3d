@@ -31,7 +31,7 @@ export function Hero() {
       <div className="bg-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
       <motion.div
         style={{ y: yGlow }}
-        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-orange-500/20 blur-[120px]"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-brand-500/20 blur-[120px]"
       />
       <motion.div
         animate={{ scale: [1, 1.15, 1], opacity: [0.35, 0.55, 0.35] }}
@@ -45,7 +45,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease }}
-            className="inline-flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-500/10 px-4 py-1.5 text-xs font-medium text-orange-200"
+            className="inline-flex items-center gap-2 rounded-full border border-brand-400/30 bg-brand-500/10 px-4 py-1.5 text-xs font-medium text-brand-200"
           >
             <Sparkles size={14} /> Feito para quem vive de impressão 3D
           </motion.span>

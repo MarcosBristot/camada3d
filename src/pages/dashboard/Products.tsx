@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Box, Clock, Package, Plus, Search, ShoppingCart, Trash2, Weight } from 'lucide-react'
+import { Clock, Package, Plus, Search, ShoppingCart, Trash2, Weight } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { FotoProduto } from '../../components/dashboard/FotoProduto'
 import { NovaVendaModal } from '../../components/dashboard/NovaVendaModal'
 import { Card, EmptyState, Page, PageHeader, Skeleton } from '../../components/dashboard/bits'
 import { ConfirmButton, inputCls } from '../../components/ui/form'
@@ -15,13 +16,21 @@ export default function Products() {
   const excluir = useExcluirProduto()
   const notificar = useToast()
   const [busca, setBusca] = useState('')
+  const [categoria, setCategoria] = useState<string | null>(null)
   const [vender, setVender] = useState<string | null>(null)
   const fechar = useCallback(() => setVender(null), [])
 
+  const categorias = useMemo(
+    () => [...new Set(produtos.map((p) => p.categoria).filter((c): c is string => !!c))].sort(),
+    [produtos],
+  )
+
   const lista = useMemo(() => {
     const q = busca.trim().toLowerCase()
-    return q ? produtos.filter((p) => p.nome.toLowerCase().includes(q) || p.material.toLowerCase().includes(q)) : produtos
-  }, [produtos, busca])
+    return produtos
+      .filter((p) => !categoria || p.categoria === categoria)
+      .filter((p) => !q || [p.nome, p.material, p.cor ?? '', p.categoria ?? ''].some((s) => s.toLowerCase().includes(q)))
+  }, [produtos, busca, categoria])
 
   const remover = (p: Produto) =>
     excluir.mutate(p, {
@@ -33,11 +42,11 @@ export default function Products() {
     <Page>
       <PageHeader
         title="Produtos"
-        description="Seu catálogo com custo e preço sugerido de cada peça."
+        description="Seu catálogo com custo e preço de cada peça."
         action={
           <Link
             to="/dashboard/calculadora"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:brightness-110"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-500 to-accent-400 px-5 py-2.5 text-sm font-semibold text-brand-fg transition hover:brightness-110"
           >
             <Plus size={18} /> Novo produto
           </Link>
@@ -45,9 +54,28 @@ export default function Products() {
       />
 
       {produtos.length > 0 && (
-        <div className="relative mb-6 max-w-sm">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou material" aria-label="Buscar produtos" className={`${inputCls} pl-9`} />
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div className="relative w-full max-w-sm">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome, cor ou material" aria-label="Buscar produtos" className={`${inputCls} pl-9`} />
+          </div>
+          {categorias.length > 1 && (
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por categoria">
+              {[null, ...categorias].map((c) => (
+                <motion.button
+                  key={c ?? 'todas'}
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => setCategoria(c)}
+                  aria-pressed={categoria === c}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition ${
+                    categoria === c ? 'bg-brand-500/15 text-brand-200 ring-brand-400/40' : 'text-zinc-400 ring-white/10 hover:text-zinc-200'
+                  }`}
+                >
+                  {c ?? 'Todas'}
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -64,7 +92,7 @@ export default function Products() {
               'Tente outro termo de busca.'
             ) : (
               <>
-                Use a <Link to="/dashboard/calculadora" className="text-orange-300 hover:underline">calculadora</Link> para precificar sua
+                Use a <Link to="/dashboard/calculadora" className="text-brand-300 hover:underline">calculadora</Link> para precificar sua
                 primeira peça e salvá-la aqui.
               </>
             )}
@@ -81,17 +109,17 @@ export default function Products() {
                 animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 8) * 0.05 } }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 whileHover={{ y: -4 }}
-                className="group overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/60 transition-colors hover:border-orange-400/25"
+                className="group overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/60 transition-colors hover:border-brand-400/25"
               >
                 <div className="relative aspect-[4/3] overflow-hidden bg-zinc-950">
-                  {p.foto_url ? (
-                    <img src={p.foto_url} alt={p.nome} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-                  ) : (
-                    <div className="bg-layers flex h-full w-full items-center justify-center text-orange-300/50">
-                      <Box size={44} />
-                    </div>
+                  <FotoProduto produto={p} />
+                  <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-zinc-950/75 px-2.5 py-1 text-[11px] font-medium text-zinc-100 backdrop-blur">
+                    {p.material}
+                    {p.cor && ` · ${p.cor}`}
+                  </span>
+                  {p.categoria && (
+                    <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-brand-500/85 px-2.5 py-1 text-[11px] font-semibold text-brand-fg">{p.categoria}</span>
                   )}
-                  <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-zinc-200 backdrop-blur">{p.material}</span>
                 </div>
 
                 <div className="p-5">
@@ -105,19 +133,27 @@ export default function Products() {
 
                   <div className="mt-3 flex gap-4 text-xs text-zinc-500">
                     <span className="flex items-center gap-1"><Weight size={13} /> {formatNumber(p.peso_gramas)} g</span>
-                    <span className="flex items-center gap-1"><Clock size={13} /> {formatNumber(p.tempo_maquina_horas)} h</span>
-                    <span>margem {formatNumber(p.margem_lucro_pct)}%</span>
+                    {p.tempo_maquina_horas > 0 ? (
+                      <span className="flex items-center gap-1"><Clock size={13} /> {formatNumber(p.tempo_maquina_horas)} h</span>
+                    ) : (
+                      <span title="Custo considera só o material (sem tempo de máquina/energia)">só material</span>
+                    )}
                   </div>
 
                   <div className="mt-4 flex items-end justify-between border-t border-white/5 pt-4">
                     <div>
-                      <p className="text-xs text-zinc-500">Custo {formatBRL(p.custo_base)}</p>
-                      <p className="text-gradient font-display text-2xl font-bold">{formatBRL(p.preco_sugerido)}</p>
+                      <p className="text-xs text-zinc-500">
+                        Custo {formatBRL(p.custo_base)} · lucro {formatBRL((p.preco_venda ?? p.preco_sugerido) - p.custo_base)}
+                      </p>
+                      <p className="text-gradient font-display text-2xl font-bold">{formatBRL(p.preco_venda ?? p.preco_sugerido)}</p>
+                      {p.preco_venda !== null && Math.abs(p.preco_venda - p.preco_sugerido) > 0.01 && (
+                        <p className="text-[11px] text-zinc-500">sugerido {formatBRL(p.preco_sugerido)}</p>
+                      )}
                     </div>
                     <motion.button
                       whileTap={{ scale: 0.94 }}
                       onClick={() => setVender(p.id)}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium transition hover:border-orange-400/40 hover:text-orange-200"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium transition hover:border-brand-400/40 hover:text-brand-200"
                     >
                       <ShoppingCart size={15} /> Vender
                     </motion.button>

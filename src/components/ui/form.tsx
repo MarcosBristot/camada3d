@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 export const inputCls =
-  'w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-orange-400/60 focus:ring-2 focus:ring-orange-500/20 disabled:opacity-50'
+  'w-full rounded-xl border border-white/10 bg-zinc-950/60 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-brand-400/60 focus:ring-2 focus:ring-brand-500/20 disabled:opacity-50'
 
 /** Aceita vírgula ou ponto como separador decimal. Vazio/ inválido => 0. */
 export function parseNum(v: string): number {
@@ -73,7 +73,7 @@ type ButtonProps = HTMLMotionProps<'button'> & {
 }
 
 const btnVariants = {
-  primary: 'bg-gradient-to-r from-orange-500 to-amber-400 text-zinc-950 shadow-[0_0_30px_-10px_rgba(251,146,60,0.8)] hover:brightness-110',
+  primary: 'bg-gradient-to-r from-brand-500 to-accent-400 text-brand-fg shadow-[0_0_30px_-10px_color-mix(in_oklab,var(--brand)_80%,transparent)] hover:brightness-110',
   secondary: 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]',
   ghost: 'text-zinc-400 hover:bg-white/5 hover:text-zinc-100',
   danger: 'border border-red-400/30 bg-red-500/10 text-red-300 hover:bg-red-500/20',

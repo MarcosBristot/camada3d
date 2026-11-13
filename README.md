@@ -108,3 +108,27 @@ então mudar o preço do filamento depois não altera o lucro de vendas antigas.
 | `/dashboard/calculadora`   | Calcula custo e preço em tempo real e salva como produto (com foto)       |
 | `/dashboard/produtos`      | Catálogo com foto, custo e preço; atalho para vender                      |
 | `/dashboard/despesas`      | Despesas operacionais que entram no lucro líquido                         |
+| `/dashboard/pedidos`       | Pedidos em abas **A fazer**, **Concluídos** e **Entregues**, com pagamento |
+| `/dashboard/empresa`       | Logo, cores e tema; filamentos; importação da planilha                    |
+
+## Identidade visual e tema
+
+- Ao enviar a logo em **Empresa**, `src/lib/palette.ts` extrai a cor principal e a secundária no próprio
+  navegador. O site inteiro usa essas cores (variáveis `--brand` / `--accent` em `src/index.css`;
+  as classes `brand-*` e `accent-*` são derivadas delas).
+- Tema claro, escuro ou do sistema, salvo no perfil e em cache local (a landing também usa).
+- O texto sobre botões da cor principal fica claro ou escuro automaticamente, para manter contraste.
+
+## Importação da planilha (Controle 3D)
+
+Em **Empresa → Importar planilha**, envie o `.xlsx` com as abas `Filamentos`, `Produtos`, `Vendas` e `Marketing`.
+O arquivo é lido no navegador e nada é gravado antes da revisão:
+
+- linhas de exemplo ou isoladas no fim das abas vêm desmarcadas;
+- cores repetidas em Filamentos geram aviso, porque fórmulas com SOMASE somam os preços;
+- cada "Status Pagamento" da planilha pode ser direcionado para uma etapa do pedido;
+- rodar de novo não duplica nada (filamento por cor+material+marca, produto por nome,
+  pedido pelo código `PED-xxx`, despesa por descrição+valor).
+
+O leitor fica em `src/lib/importacao/planilha.ts` (módulo puro, testável no Node) e a gravação em
+`src/lib/importacao/executar.ts`.

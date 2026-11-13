@@ -58,7 +58,7 @@ const item = {
 function FeatureCard({ icon: Icon, title, desc, tag }: Feature) {
   const mx = useMotionValue(-200)
   const my = useMotionValue(-200)
-  const spotlight = useMotionTemplate`radial-gradient(360px circle at ${mx}px ${my}px, rgba(251,146,60,0.16), transparent 70%)`
+  const spotlight = useMotionTemplate`radial-gradient(360px circle at ${mx}px ${my}px, color-mix(in oklab, var(--brand) 16%, transparent), transparent 70%)`
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -72,7 +72,7 @@ function FeatureCard({ icon: Icon, title, desc, tag }: Feature) {
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       onMouseMove={onMove}
-      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-7 transition-colors hover:border-orange-400/30"
+      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] p-7 transition-colors hover:border-brand-400/30"
     >
       <motion.div
         aria-hidden
@@ -83,7 +83,7 @@ function FeatureCard({ icon: Icon, title, desc, tag }: Feature) {
         <div className="mb-5 flex items-center justify-between">
           <motion.span
             whileHover={{ rotate: -8, scale: 1.1 }}
-            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-400/10 text-orange-300 ring-1 ring-orange-400/20"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500/20 to-accent-400/10 text-brand-300 ring-1 ring-brand-400/20"
           >
             <Icon size={22} />
           </motion.span>
@@ -105,7 +105,7 @@ export function Features() {
     <section id="funcionalidades" className="relative scroll-mt-24 py-28 md:py-36">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-400">Funcionalidades</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-400">Funcionalidades</p>
           <h2 className="mt-4 font-display text-4xl font-bold tracking-tight md:text-5xl">
             Do fatiador ao <span className="text-gradient">lucro no bolso</span>
           </h2>

@@ -25,6 +25,8 @@ export type CategoriaDespesa =
   | 'taxas'
   | 'outros'
 
+export type TemaPreferido = 'claro' | 'escuro' | 'sistema'
+
 export type Database = {
   public: {
     Tables: {
@@ -49,6 +51,10 @@ export type Database = {
           custo_base: number
           preco_sugerido: number
           ativo: boolean
+          categoria: string | null
+          cor: string | null
+          preco_venda: number | null
+          filamento_id: string | null
           created_at: string
           updated_at: string
         }
@@ -68,6 +74,10 @@ export type Database = {
           custo_adicional?: number
           margem_lucro_pct?: number
           ativo?: boolean
+          categoria?: string | null
+          cor?: string | null
+          preco_venda?: number | null
+          filamento_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -87,10 +97,22 @@ export type Database = {
           custo_adicional?: number
           margem_lucro_pct?: number
           ativo?: boolean
+          categoria?: string | null
+          cor?: string | null
+          preco_venda?: number | null
+          filamento_id?: string | null
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'produtos_filamento_id_fkey'
+            columns: ['filamento_id']
+            isOneToOne: false
+            referencedRelation: 'filamentos'
+            referencedColumns: ['id']
+          },
+        ]
       }
       vendas: {
         Row: {
@@ -106,6 +128,9 @@ export type Database = {
           lucro: number
           status_entrega: StatusEntrega
           observacoes: string | null
+          codigo: string | null
+          pago: boolean
+          forma_pagamento: string | null
           created_at: string
           updated_at: string
         }
@@ -122,6 +147,9 @@ export type Database = {
           custo_total?: number | null
           status_entrega?: StatusEntrega
           observacoes?: string | null
+          codigo?: string | null
+          pago?: boolean
+          forma_pagamento?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -137,6 +165,9 @@ export type Database = {
           custo_total?: number
           status_entrega?: StatusEntrega
           observacoes?: string | null
+          codigo?: string | null
+          pago?: boolean
+          forma_pagamento?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -149,6 +180,75 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      perfil_empresa: {
+        Row: {
+          user_id: string
+          nome: string
+          logo_url: string | null
+          logo_path: string | null
+          cor_primaria: string
+          cor_secundaria: string
+          tema: TemaPreferido
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id?: string
+          nome: string
+          logo_url?: string | null
+          logo_path?: string | null
+          cor_primaria?: string
+          cor_secundaria?: string
+          tema?: TemaPreferido
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          nome?: string
+          logo_url?: string | null
+          logo_path?: string | null
+          cor_primaria?: string
+          cor_secundaria?: string
+          tema?: TemaPreferido
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      filamentos: {
+        Row: {
+          id: string
+          user_id: string
+          cor: string
+          material: string
+          marca: string | null
+          preco_kg: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          cor: string
+          material?: string
+          marca?: string | null
+          preco_kg: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          cor?: string
+          material?: string
+          marca?: string | null
+          preco_kg?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       despesas_operacionais: {
         Row: {
@@ -221,6 +321,9 @@ export type Venda = Tables<'vendas'>
 export type NovaVenda = TablesInsert<'vendas'>
 export type DespesaOperacional = Tables<'despesas_operacionais'>
 export type ResumoFinanceiro = Views<'resumo_financeiro'>
+export type PerfilEmpresa = Tables<'perfil_empresa'>
+export type Filamento = Tables<'filamentos'>
+export type NovoFilamento = TablesInsert<'filamentos'>
 
 /** Venda com o produto embutido: supabase.from('vendas').select('*, produtos(nome, foto_url)') */
 export type VendaComProduto = Venda & {

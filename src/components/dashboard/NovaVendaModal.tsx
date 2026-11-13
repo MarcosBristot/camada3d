@@ -1,7 +1,7 @@
 import { Calculator } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { useCriarVenda, useProdutos } from '../../hooks/useData'
+import { useCriarVenda, useProdutos, useVendas } from '../../hooks/useData'
 import { hojeISO } from '../../lib/dates'
 import { formatBRL, formatNumber } from '../../lib/format'
 import { STATUS, STATUS_ORDEM } from '../../lib/labels'
@@ -19,9 +19,18 @@ interface Props {
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
 const paraCampo = (n: number) => n.toFixed(2).replace('.', ',')
+const FORMAS = ['PIX', 'Dinheiro', 'Cartão de crédito', 'Cartão de débito', 'Transferência', 'Outro']
+
+/** Próximo código no padrão da planilha: PED-001, PED-002… */
+function proximoCodigo(codigos: (string | null)[]) {
+  const nums = codigos.map((c) => /^PED-(\d+)$/i.exec(c ?? '')?.[1]).filter(Boolean).map(Number)
+  const n = (nums.length ? Math.max(...nums) : 0) + 1
+  return `PED-${String(n).padStart(3, '0')}`
+}
 
 export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
   const { data: produtos = [], isLoading } = useProdutos()
+  const { data: vendas = [] } = useVendas()
   const criar = useCriarVenda()
   const notificar = useToast()
 
@@ -33,6 +42,9 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
   const [precoEditado, setPrecoEditado] = useState(false)
   const [status, setStatus] = useState<StatusEntrega>('pendente')
   const [obs, setObs] = useState('')
+  const [codigo, setCodigo] = useState('')
+  const [pago, setPago] = useState(false)
+  const [forma, setForma] = useState('PIX')
   const [tentou, setTentou] = useState(false)
 
   // Reinicia o formulário sempre que abre
@@ -46,16 +58,24 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
     setPrecoEditado(false)
     setStatus('pendente')
     setObs('')
+    setPago(false)
+    setForma('PIX')
     setTentou(false)
   }, [open, produtoInicialId])
+
+  // Sugere o próximo código ao abrir (as vendas podem carregar depois)
+  useEffect(() => {
+    if (open) setCodigo(proximoCodigo(vendas.map((v) => v.codigo)))
+  }, [open, vendas])
 
   const produto = useMemo(() => produtos.find((p) => p.id === produtoId), [produtos, produtoId])
   const quantidade = Math.max(1, Math.floor(parseNum(qtd)))
 
-  // Preço acompanha o sugerido até o usuário editar manualmente
+  // Preço acompanha o praticado (ou o sugerido) até o usuário editar manualmente
+  const precoUnitario = produto ? produto.preco_venda ?? produto.preco_sugerido : 0
   useEffect(() => {
-    if (!precoEditado) setPreco(produto ? paraCampo(round2(produto.preco_sugerido * quantidade)) : '')
-  }, [produto, quantidade, precoEditado])
+    if (!precoEditado) setPreco(produto ? paraCampo(round2(precoUnitario * quantidade)) : '')
+  }, [produto, precoUnitario, quantidade, precoEditado])
 
   const precoFinal = parseNum(preco)
   const custo = produto ? round2(produto.custo_base * quantidade) : 0
@@ -82,8 +102,11 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
         preco_final: round2(precoFinal),
         status_entrega: status,
         observacoes: obs.trim() || null,
+        codigo: codigo.trim() || null,
+        pago,
+        forma_pagamento: forma,
       })
-      notificar('sucesso', `Venda para ${cliente.trim()} registrada: ${formatBRL(precoFinal)}.`)
+      notificar('sucesso', `${codigo.trim() || 'Pedido'} de ${cliente.trim()} registrado: ${formatBRL(precoFinal)}.`)
       onClose()
     } catch (err) {
       notificar('erro', mensagemErro(err))
@@ -91,12 +114,12 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova venda" description="O custo é congelado com base no produto no momento do registro.">
+    <Modal open={open} onClose={onClose} title="Novo pedido" description="O custo é congelado com base no produto no momento do registro.">
       {!isLoading && produtos.length === 0 ? (
         <EmptyState icon={<Calculator size={24} />} title="Nenhum produto cadastrado">
           Calcule o preço de uma peça e salve-a como produto para registrar vendas.
           <div className="mt-5">
-            <Link to="/dashboard/calculadora" onClick={onClose} className="font-medium text-orange-300 hover:text-orange-200">
+            <Link to="/dashboard/calculadora" onClick={onClose} className="font-medium text-brand-300 hover:text-brand-200">
               Abrir calculadora →
             </Link>
           </div>
@@ -108,15 +131,20 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
               <option value="" className="bg-zinc-900">Selecione…</option>
               {produtos.map((p) => (
                 <option key={p.id} value={p.id} className="bg-zinc-900">
-                  {p.nome} — {formatBRL(p.preco_sugerido)}
+                  {p.nome} — {formatBRL(p.preco_venda ?? p.preco_sugerido)}
                 </option>
               ))}
             </select>
           </Field>
 
-          <Field label="Cliente" htmlFor="venda-cliente" error={tentou ? erros.cliente : undefined}>
-            <input id="venda-cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} maxLength={120} placeholder="Nome de quem comprou" className={inputCls} autoComplete="off" />
-          </Field>
+          <div className="grid grid-cols-[1fr_120px] gap-3">
+            <Field label="Cliente" htmlFor="venda-cliente" error={tentou ? erros.cliente : undefined}>
+              <input id="venda-cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} maxLength={120} placeholder="Nome de quem comprou" className={inputCls} autoComplete="off" />
+            </Field>
+            <Field label="Código" htmlFor="venda-codigo">
+              <input id="venda-codigo" value={codigo} onChange={(e) => setCodigo(e.target.value.toUpperCase())} maxLength={30} className={`${inputCls} font-mono`} />
+            </Field>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Data" htmlFor="venda-data">
@@ -132,7 +160,7 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
               label="Valor cobrado (total)"
               htmlFor="venda-preco"
               error={tentou ? erros.preco : undefined}
-              hint={produto && precoEditado ? undefined : produto ? 'Preenchido com o preço sugerido.' : undefined}
+              hint={produto && precoEditado ? undefined : produto ? (produto.preco_venda !== null ? 'Preço praticado do produto.' : 'Preço sugerido pela margem.') : undefined}
             >
               <NumberInput id="venda-preco" value={preco} onChange={(v) => { setPreco(v); setPrecoEditado(true) }} prefix="R$" invalid={tentou && !!erros.preco} />
             </Field>
@@ -143,6 +171,18 @@ export function NovaVendaModal({ open, onClose, produtoInicialId }: Props) {
                 ))}
               </select>
             </Field>
+          </div>
+
+          <div className="grid grid-cols-2 items-end gap-3">
+            <Field label="Pagamento" htmlFor="venda-forma">
+              <select id="venda-forma" value={forma} onChange={(e) => setForma(e.target.value)} className={inputCls}>
+                {FORMAS.map((f) => <option key={f} className="bg-zinc-900">{f}</option>)}
+              </select>
+            </Field>
+            <label className={`flex cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm ring-1 transition ${pago ? 'bg-emerald-400/10 text-emerald-300 ring-emerald-400/30' : 'text-zinc-400 ring-white/10'}`}>
+              <input type="checkbox" checked={pago} onChange={(e) => setPago(e.target.checked)} className="h-4 w-4 accent-brand-500" />
+              {pago ? 'Já foi pago' : 'Ainda não pago'}
+            </label>
           </div>
 
           <Field label="Observações (opcional)" htmlFor="venda-obs">

@@ -36,7 +36,7 @@ export function PrintVisual() {
 
   return (
     <div className="relative mx-auto w-full max-w-md">
-      <div className="absolute inset-0 -z-10 rounded-[2rem] bg-orange-500/20 blur-3xl" />
+      <div className="absolute inset-0 -z-10 rounded-[2rem] bg-brand-500/20 blur-3xl" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.92, rotateX: 14 }}
@@ -69,7 +69,7 @@ export function PrintVisual() {
                 className="h-[9px] origin-left rounded-[3px]"
                 style={{
                   width: `${w}%`,
-                  background: `linear-gradient(90deg, hsl(${22 + i * 1.6} 95% ${52 + i * 0.6}%), hsl(${34 + i * 1.4} 95% ${62 + i * 0.4}%))`,
+                  background: `linear-gradient(90deg, color-mix(in oklab, var(--brand) ${100 - (i / LAYERS.length) * 70}%, var(--accent)), color-mix(in oklab, var(--accent) ${60 + (i / LAYERS.length) * 40}%, white))`,
                 }}
                 initial={{ scaleX: 0, opacity: 0.4 }}
                 animate={{ scaleX: 1, opacity: 1 }}
@@ -92,7 +92,7 @@ export function PrintVisual() {
             >
               <div className="h-5 w-10 rounded-md bg-zinc-600 ring-1 ring-white/20" />
               <div className="h-0 w-0 border-x-[7px] border-t-[9px] border-x-transparent border-t-zinc-400" />
-              <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-orange-400 shadow-[0_0_12px_4px_rgba(251,146,60,0.8)]" />
+              <div className="mt-0.5 h-1.5 w-1.5 rounded-full bg-brand-400 shadow-[0_0_12px_4px_color-mix(in_oklab,var(--brand)_80%,transparent)]" />
             </motion.div>
           </motion.div>
 
@@ -108,7 +108,7 @@ export function PrintVisual() {
           </div>
           <div key={cycle} className="h-1.5 overflow-hidden rounded-full bg-white/5">
             <motion.div
-              className="h-full origin-left rounded-full bg-gradient-to-r from-orange-500 to-amber-300"
+              className="h-full origin-left rounded-full bg-gradient-to-r from-brand-500 to-accent-300"
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ duration: TOTAL, ease: 'linear' }}
@@ -138,7 +138,7 @@ export function PrintVisual() {
       >
         <motion.div
           {...float(1.2)}
-          className="rounded-2xl border border-orange-400/30 bg-zinc-900/90 px-4 py-3 shadow-xl shadow-orange-500/10 backdrop-blur"
+          className="rounded-2xl border border-brand-400/30 bg-zinc-900/90 px-4 py-3 shadow-xl shadow-brand-500/10 backdrop-blur"
         >
           <p className="text-[11px] uppercase tracking-wider text-zinc-500">Preço sugerido</p>
           <p className="text-gradient font-display text-lg font-semibold">{formatBRL(exemplo.precoSugerido)}</p>

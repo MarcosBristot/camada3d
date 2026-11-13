@@ -3,6 +3,7 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { Logo } from '../ui/Logo'
 import { MagneticButton } from '../ui/MagneticButton'
+import { ThemeToggle } from '../ui/ThemeToggle'
 
 const links = [
   { href: '#funcionalidades', label: 'Funcionalidades' },
@@ -47,20 +48,24 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <MagneticButton to="/dashboard" className="!px-5 !py-2.5">
             Abrir Dashboard
           </MagneticButton>
         </div>
 
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
         <button
-          className="rounded-lg p-2 text-zinc-300 md:hidden"
+          className="rounded-lg p-2 text-zinc-300"
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? 'Fechar menu' : 'Abrir menu'}
           aria-expanded={open}
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
+        </div>
       </div>
 
       <AnimatePresence>
