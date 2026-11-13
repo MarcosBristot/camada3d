@@ -110,7 +110,7 @@ npx supabase db query --remote --read-only "select version from supabase_migrati
 
    > ⚠️ **Nunca** use a chave `service_role` / `secret`. Ela ignora todas as regras de segurança. O build recusa essa chave automaticamente.
 6. Clique em **Deploy** e aguarde cerca de 1 minuto.
-7. Anote o endereço gerado, por exemplo `https://camada3d.vercel.app` (pode ter um sufixo). Ele é usado no Passo 5.
+7. Anote o endereço gerado, no seu caso `https://farmops3d.vercel.app` (projeto **farmops3d** na Vercel). Ele é usado no Passo 5.
 
 O build de produção (`npm run build:producao`) verifica três coisas antes de publicar:
 - se as variáveis do Supabase existem e são as certas (`check:env`);
@@ -127,9 +127,9 @@ Tudo no painel do Supabase, projeto **camada 3d** (<https://supabase.com/dashboa
 
 ### 5.1 Endereços do site
 **Authentication → URL Configuration**
-- **Site URL:** o endereço da Vercel, ex.: `https://camada3d.vercel.app`
+- **Site URL:** o endereço da Vercel, ex.: `https://farmops3d.vercel.app`
 - **Redirect URLs:** adicione
-  - `https://camada3d.vercel.app/**`
+  - `https://farmops3d.vercel.app/**`
   - `http://localhost:5173/**` (para continuar testando no seu computador)
 
 > Se faltar isso, o link de confirmação do e-mail abre em `localhost` e não funciona para os usuários.

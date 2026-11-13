@@ -1,14 +1,29 @@
-export function Logo({ className = '' }: { className?: string }) {
+import type { CSSProperties } from 'react'
+
+/**
+ * Logo "farmOps 3D".
+ * O arquivo public/logo-farmops.png é branco com fundo transparente; aqui ele é usado como
+ * MÁSCARA, e a cor vem do texto atual (currentColor). Assim a logo fica clara no tema escuro
+ * e escura no tema claro, sem precisar de duas imagens.
+ */
+const PROPORCAO = 447 / 128
+
+const mascara: CSSProperties = {
+  WebkitMaskImage: 'url(/logo-farmops.png)',
+  maskImage: 'url(/logo-farmops.png)',
+  WebkitMaskSize: 'contain',
+  maskSize: 'contain',
+  WebkitMaskRepeat: 'no-repeat',
+  maskRepeat: 'no-repeat',
+  WebkitMaskPosition: 'left center',
+  maskPosition: 'left center',
+  aspectRatio: String(PROPORCAO),
+}
+
+export function Logo({ className = '', altura = 'h-9' }: { className?: string; altura?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span className="relative flex h-8 w-8 flex-col items-center justify-end gap-[3px] rounded-lg bg-zinc-900 pb-1.5 ring-1 ring-white/10">
-        <span className="h-[3px] w-2.5 rounded-full bg-accent-300" />
-        <span className="h-[3px] w-3.5 rounded-full bg-brand-300" />
-        <span className="h-[3px] w-[18px] rounded-full bg-brand-500" />
-      </span>
-      <span className="font-display text-lg font-bold tracking-tight">
-        Camada<span className="text-gradient">3D</span>
-      </span>
+    <span className={`inline-flex items-center text-zinc-50 ${className}`}>
+      <span role="img" aria-label="farmOps 3D" className={`block ${altura} bg-current`} style={mascara} />
     </span>
   )
 }

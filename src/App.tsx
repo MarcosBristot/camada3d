@@ -2,6 +2,7 @@ import { Loader2 } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { AvisoArmazenamento } from './components/legal/AvisoArmazenamento'
+import { AvisoErroLink } from './components/ui/AvisoErroLink'
 import Landing from './pages/Landing'
 
 // O painel (Supabase, formulários) só é baixado quando o usuário entra nele
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="*" element={<Landing />} />
       </Routes>
       <AvisoArmazenamento />
+      <AvisoErroLink />
     </Suspense>
   )
 }
