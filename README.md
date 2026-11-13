@@ -19,14 +19,39 @@ Sem `.env`, o painel abre em **modo demonstração**: tudo funciona igual, mas o
 do navegador e vêm com alguns produtos e vendas de exemplo (o botão "Restaurar dados de exemplo" na barra
 lateral recria esses dados). Assim que o `.env` existir, o app passa a usar o Supabase com login.
 
-## Configurando o Supabase
+## Supabase local (Docker)
 
-1. Crie um projeto em https://supabase.com.
-2. No **SQL Editor**, cole e execute `supabase/migrations/20261113000000_schema_inicial.sql`.
-   Isso cria as tabelas, os triggers, a view `resumo_financeiro`, as políticas RLS e o bucket `produtos`.
-3. Copie `.env.example` para `.env` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
-   (Project Settings → API).
-4. Em **Authentication → Providers**, deixe o Email habilitado (o RLS exige usuário logado).
+Para desenvolver e testar sem tocar no banco de produção:
+
+```bash
+npm run db:start      # sobe Postgres, Auth, Storage e Studio (http://127.0.0.1:54323) e aplica as migrations
+npm run db:test       # roda os testes pgTAP em supabase/tests
+npm run dev:localdb   # app apontando para o banco local (usa .env.localdb)
+npm run db:stop
+```
+
+`.env.localdb` (fora do git) leva a URL `http://127.0.0.1:54321` e a `ANON_KEY` que o `db:start` imprime.
+
+## Supabase na nuvem
+
+1. Crie o projeto em https://supabase.com/dashboard/new e guarde a senha do banco.
+2. Entre e linke o projeto (o `link` pede a senha do banco):
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref SEU_PROJECT_REF
+   ```
+   O `project-ref` é o trecho `xxxx` de `https://xxxx.supabase.co`.
+3. Aplique o schema e confira:
+   ```bash
+   npx supabase db push
+   ```
+4. Copie `.env.example` para `.env` e preencha `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
+   (Project Settings → API Keys; a chave "anon"/"publishable" é pública e pode ir para o front-end).
+5. Em **Authentication → URL Configuration**, defina o *Site URL* (em desenvolvimento,
+   `http://localhost:5173`) para o link de confirmação de e-mail voltar para o app.
+
+Mudanças futuras no banco: crie um novo arquivo em `supabase/migrations/`, teste com `db:start`/`db:test`
+e aplique com `npx supabase db push`.
 
 ## Estrutura
 
