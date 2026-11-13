@@ -29,7 +29,7 @@ export const LEGAL = {
   },
 
   contato: {
-    email: P('e-mail de suporte, ex.: contato@camada3d.com.br'),
+    email: P('farmops3d@gmail.com'),
     /** WhatsApp opcional (só números com DDI e DDD, ex.: 5551999999999). Deixe '' para ocultar. */
     whatsapp: '',
     horario: 'segunda a sexta, das 9h às 18h (horário de Brasília), exceto feriados',
