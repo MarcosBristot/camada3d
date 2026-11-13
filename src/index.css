@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-zinc-950);
+  color: var(--color-zinc-100);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(251 146 60 / 0.35);
+}
+
+/* Grade sutil que lembra a mesa de impressão */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #fb923c 0%, #fbbf24 55%, #fde68a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Linhas horizontais (camadas) para fundos decorativos */
+.bg-layers {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgb(251 146 60 / 0.10) 0px,
+    rgb(251 146 60 / 0.10) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
