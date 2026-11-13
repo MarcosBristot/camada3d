@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Building2, Calculator, ClipboardList, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, Wallet } from 'lucide-react'
+import { Building2, Calculator, ClipboardList, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, UserRound, Wallet } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -108,6 +108,11 @@ export function DashboardLayout() {
         </nav>
 
         <div className="mt-auto space-y-3">
+          <nav aria-label="Documentos" className="flex flex-wrap gap-x-3 gap-y-1 px-3 text-[11px] text-zinc-600">
+            <NavLink to="/termos" target="_blank" className="hover:text-zinc-400">Termos</NavLink>
+            <NavLink to="/privacidade" target="_blank" className="hover:text-zinc-400">Privacidade</NavLink>
+            <NavLink to="/contato" target="_blank" className="hover:text-zinc-400">Contato</NavLink>
+          </nav>
           {demo && (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-100/80">
               <p className="flex items-center gap-1.5 font-semibold text-amber-300">
@@ -120,9 +125,10 @@ export function DashboardLayout() {
             </div>
           )}
           <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/5 px-3 py-2.5">
-            <span className="truncate text-xs text-zinc-400" title={user?.email ?? ''}>
-              {demo ? 'Usuário de demonstração' : user?.email}
-            </span>
+            <NavLink to="/dashboard/conta" className="flex min-w-0 items-center gap-2 text-xs text-zinc-400 hover:text-zinc-100" title="Conta e privacidade">
+              <UserRound size={15} className="shrink-0" />
+              <span className="truncate">{demo ? 'Usuário de demonstração' : user?.email}</span>
+            </NavLink>
             {!demo && (
               <button onClick={handleSair} aria-label="Sair" title="Sair" className="rounded-lg p-1.5 text-zinc-500 hover:bg-white/5 hover:text-zinc-200">
                 <LogOut size={16} />
@@ -144,6 +150,9 @@ export function DashboardLayout() {
             </span>
           )}
           <ThemeToggle onChange={persistirModo} />
+          <NavLink to="/dashboard/conta" aria-label="Conta e privacidade" className="rounded-lg p-2 text-zinc-400">
+            <UserRound size={18} />
+          </NavLink>
           {!demo && (
             <button onClick={handleSair} aria-label="Sair" className="rounded-lg p-2 text-zinc-400">
               <LogOut size={18} />

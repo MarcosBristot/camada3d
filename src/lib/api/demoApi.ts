@@ -345,6 +345,11 @@ export const demoApi: DataApi = {
     return s.perfil
   },
 
+  async excluirConta() {
+    await espera()
+    localStorage.removeItem(KEY)
+  },
+
   async importar(entrada) {
     await espera()
     return executarImportacao(entrada, primitivas)

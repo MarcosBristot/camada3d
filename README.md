@@ -2,7 +2,9 @@
 
 Gestão de vendas, controle financeiro e precificação para negócios de impressão 3D.
 
-**Stack:** React 19 + TypeScript · Vite 6 · Tailwind CSS 4 · Framer Motion · Supabase (Postgres + Storage)
+**Stack:** React 19 + TypeScript · Vite 6 · Tailwind CSS 4 · Framer Motion · Supabase (Postgres + Auth + Storage) · Vercel
+
+📘 **Para publicar:** [MANUAL-DEPLOY.md](MANUAL-DEPLOY.md)
 
 ## Rodando localmente
 
@@ -132,3 +134,30 @@ O arquivo é lido no navegador e nada é gravado antes da revisão:
 
 O leitor fica em `src/lib/importacao/planilha.ts` (módulo puro, testável no Node) e a gravação em
 `src/lib/importacao/executar.ts`.
+
+## Documentos legais e privacidade (LGPD)
+
+| Rota            | Documento                                        |
+|-----------------|--------------------------------------------------|
+| `/termos`       | Termos de Uso                                    |
+| `/privacidade`  | Política de Privacidade (LGPD)                   |
+| `/cookies`      | Cookies e armazenamento local                    |
+| `/reembolso`    | Cancelamento e Reembolso (CDC, art. 49)          |
+| `/contato`      | Canais de suporte, encarregado (DPO) e dados do fornecedor |
+
+- Todos os dados variáveis (razão social, CNPJ/CPF, endereço, e-mails, foro, fornecedores, prazos, versão)
+  ficam em **`src/config/legal.ts`**. `npm run check:legal` lista o que falta e falha se houver pendência.
+- Cadastro exige aceite dos Termos e da Política; versão e data ficam em `auth.users.raw_user_meta_data`.
+- **Painel → Conta**: baixar todos os dados (JSON) e excluir a conta. A exclusão apaga fotos/logo do Storage
+  e chama `public.excluir_minha_conta()` (migration 3), que remove a conta e tudo em cascata.
+- Sem Google Fonts, analytics ou pixels: fontes servidas pelo próprio site (`@fontsource-variable`).
+
+## Publicação (deploy)
+
+O passo a passo completo para colocar no ar (Gmail para envio de e-mails, Vercel, configuração do login no Supabase,
+testes em produção, rotina, limites dos planos grátis e solução de problemas) está em **[MANUAL-DEPLOY.md](MANUAL-DEPLOY.md)**.
+
+Resumo das proteções do build de produção (`npm run build:producao`, usado pela Vercel):
+- `check:env`: exige as variáveis do Supabase e recusa a chave `service_role`;
+- `check:legal`: bloqueia o deploy se houver `[PREENCHER` em `src/config/legal.ts`;
+- `vercel.json`: rotas da SPA, cache dos arquivos e cabeçalhos de segurança (CSP sem scripts externos).

@@ -6,6 +6,8 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ToastProvider } from './components/ui/Toast'
 import { ThemeProvider } from './contexts/ThemeContext'
+import '@fontsource-variable/inter'
+import '@fontsource-variable/space-grotesk'
 import './index.css'
 
 const queryClient = new QueryClient({

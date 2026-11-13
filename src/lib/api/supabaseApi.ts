@@ -211,6 +211,30 @@ export const supabaseApi: DataApi = {
 
   importar: (entrada) => executarImportacao(entrada, primitivas),
 
+  async excluirConta() {
+    const sb = getSupabase()
+    const { data: auth } = await sb.auth.getUser()
+    const uid = auth.user?.id
+    if (!uid) throw new Error('Faça login novamente.')
+
+    // 1) arquivos da pasta do usuário (fotos e logo) — o SQL não pode apagar o Storage
+    const bucket = sb.storage.from('produtos')
+    for (let rodada = 0; rodada < 50; rodada++) {
+      const { data: arquivos, error } = await bucket.list(uid, { limit: 100 })
+      if (error) throw new Error(error.message)
+      if (!arquivos?.length) break
+      const { error: erroRemocao } = await bucket.remove(arquivos.map((a) => `${uid}/${a.name}`))
+      if (erroRemocao) throw new Error(erroRemocao.message)
+    }
+
+    // 2) conta + dados em cascata
+    const { error } = await sb.rpc('excluir_minha_conta')
+    falha(error)
+
+    // 3) a sessão já não vale mais; limpa o que ficou no navegador
+    await sb.auth.signOut({ scope: 'local' }).catch(() => undefined)
+  },
+
   async resumo() {
     const { data, error } = await getSupabase().from('resumo_financeiro').select('*').maybeSingle()
     falha(error)

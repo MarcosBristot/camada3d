@@ -95,6 +95,9 @@ export interface DataApi {
 
   importar(entrada: EntradaImportacao): Promise<ResultadoImportacao>
 
+  /** Apaga fotos/logo do Storage e depois a conta (com todos os dados, em cascata). Irreversível. */
+  excluirConta(): Promise<void>
+
   resumo(): Promise<Resumo>
 }
 

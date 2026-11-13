@@ -1,7 +1,7 @@
 import { motion, useScroll, useSpring } from 'framer-motion'
 import { Features } from '../components/landing/Features'
 import { FinalCTA } from '../components/landing/FinalCTA'
-import { Footer } from '../components/landing/Footer'
+import { RodapeLegal } from '../components/legal/RodapeLegal'
 import { Hero } from '../components/landing/Hero'
 import { HowItWorks } from '../components/landing/HowItWorks'
 import { MaterialsMarquee } from '../components/landing/MaterialsMarquee'
@@ -28,7 +28,7 @@ export default function Landing() {
         <PricingPreview />
         <FinalCTA />
       </main>
-      <Footer />
+      <RodapeLegal />
     </div>
   )
 }

@@ -298,7 +298,9 @@ export type Database = {
         Relationships: []
       }
     }
-    Functions: { [_ in never]: never }
+    Functions: {
+      excluir_minha_conta: { Args: Record<PropertyKey, never>; Returns: undefined }
+    }
     Enums: {
       status_entrega: StatusEntrega
       categoria_despesa: CategoriaDespesa
