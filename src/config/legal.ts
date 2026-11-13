@@ -8,8 +8,6 @@
  * Não é aconselhamento jurídico: peça para um advogado revisar os textos antes de lançar.
  */
 
-const P = (o: string) => `[PREENCHER: ${o}]`
-
 export const LEGAL = {
   /** Nome comercial do serviço (como aparece para o usuário). */
   servico: 'Camada3D',
