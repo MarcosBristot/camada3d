@@ -51,7 +51,14 @@ npm run db:stop
    `http://localhost:5173`) para o link de confirmação de e-mail voltar para o app.
 
 Mudanças futuras no banco: crie um novo arquivo em `supabase/migrations/`, teste com `db:start`/`db:test`
-e aplique com `npx supabase db push`.
+e aplique com `npx supabase db push --remote` (na CLI 3, sem `--remote` o alvo é o banco local).
+
+> **Se o `db push --remote` travar em "Initialising login role..."**: o pooler está recusando a conexão
+> temporária da CLI. Aplique o arquivo pela API (HTTPS) e registre a versão no histórico:
+> ```bash
+> npx supabase db query --remote --yes -f supabase/migrations/ARQUIVO.sql
+> npx supabase db query --remote --yes "insert into supabase_migrations.schema_migrations (version, statements, name) values ('VERSAO', '{}', 'nome') on conflict do nothing"
+> ```
 
 ## Estrutura
 
