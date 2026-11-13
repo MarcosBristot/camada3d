@@ -15,7 +15,7 @@ const ITENS = [
   { nome: 'camada3d-calc-prefs', finalidade: 'Lembra o preço do filamento, a potência, a tarifa e a margem usados por último na calculadora.', tipo: 'Preferência', duracao: 'Até você limpar o navegador' },
   { nome: 'camada3d-origem', finalidade: 'Guarda de qual link de divulgação você chegou (ex.: um post), para sabermos quais divulgações funcionam. Não identifica você e não é compartilhado.', tipo: 'Funcional', duracao: '30 dias' },
   { nome: 'camada3d-aviso-armazenamento', finalidade: 'Registra que você já viu o aviso sobre armazenamento local.', tipo: 'Essencial', duracao: 'Até você limpar o navegador' },
-  { nome: 'camada3d-demo-v2', finalidade: 'Só no modo demonstração: guarda os dados de exemplo no seu navegador.', tipo: 'Funcional', duracao: 'Até você limpar o navegador' },
+  { nome: 'camada3d-demo-v3', finalidade: 'Só no modo demonstração: guarda os dados de exemplo no seu navegador.', tipo: 'Funcional', duracao: 'Até você limpar o navegador' },
 ]
 
 export default function Cookies() {

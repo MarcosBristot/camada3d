@@ -9,3 +9,4 @@ supabase/.temp
 supabase/.branches
 .claude/
 public/__*
+!.env.demo
