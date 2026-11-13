@@ -88,7 +88,7 @@ export const LEGAL = {
   },
 
   /** Versão dos documentos. Mude a data e a versão sempre que alterar o conteúdo dos textos. */
-  versao: '1.2',
+  versao: '1.3',
   vigenciaDesde: '2026-11-13',
 }
 

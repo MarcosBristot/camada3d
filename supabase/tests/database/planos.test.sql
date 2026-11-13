@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(18);
+select plan(19);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -54,6 +54,7 @@ select throws_ok(
 -- ======================= Admin =======================================
 reset role;
 insert into public.admins (user_id) values ('cccccccc-cccc-cccc-cccc-cccccccccccc');
+update auth.users set raw_user_meta_data = '{"origem":"reels-calculadora"}' where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 set local role authenticated;
 set local "request.jwt.claims" to '{"sub":"cccccccc-cccc-cccc-cccc-cccccccccccc","role":"authenticated"}';
 
@@ -63,6 +64,7 @@ select is(
   (select produtos from public.admin_listar_assinaturas() where email = 'a@teste.local'),
   16::bigint, 'listagem mostra o uso de cada usuário'
 );
+select is((select origem from public.admin_listar_assinaturas() where email = 'a@teste.local'), 'reels-calculadora', 'admin vê a origem do cadastro');
 select ok(
   public.admin_estender_pro('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 30, 'mensal', 'Pix 14/11') > now() + interval '29 days',
   'admin ativa 30 dias de Pro'

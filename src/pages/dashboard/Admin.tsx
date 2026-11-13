@@ -38,9 +38,24 @@ export default function Admin() {
     }
   }, [lista])
 
+  // Cadastros por origem (anúncio/post), com quantos viraram Pro pago
+  const porOrigem = useMemo(() => {
+    const m = new Map<string, { total: number; ultimos7: number; pagos: number }>()
+    const semana = Date.now() - 7 * 86400000
+    lista.forEach((a) => {
+      const k = a.origem ?? 'direto / sem origem'
+      const v = m.get(k) ?? { total: 0, ultimos7: 0, pagos: 0 }
+      v.total++
+      if (new Date(a.criado_em).getTime() >= semana) v.ultimos7++
+      if (ativo(a.pro_ate) && a.periodo !== 'cortesia') v.pagos++
+      m.set(k, v)
+    })
+    return [...m.entries()].sort((a, b) => b[1].total - a[1].total)
+  }, [lista])
+
   const filtrada = useMemo(() => {
     const q = busca.trim().toLowerCase()
-    return q ? lista.filter((a) => [a.email, a.empresa ?? '', a.observacao ?? ''].some((s) => s.toLowerCase().includes(q))) : lista
+    return q ? lista.filter((a) => [a.email, a.empresa ?? '', a.observacao ?? '', a.origem ?? ''].some((s) => s.toLowerCase().includes(q))) : lista
   }, [lista, busca])
 
   if (verificando) return <div className="flex justify-center py-20 text-zinc-500"><Loader2 className="animate-spin" /></div>
@@ -87,6 +102,35 @@ export default function Admin() {
         })}
       </div>
 
+      {porOrigem.length > 0 && (
+        <Card className="mt-6">
+          <div className="border-b border-white/5 p-5">
+            <h2 className="font-display text-lg font-semibold">Cadastros por origem</h2>
+            <p className="mt-1 text-xs text-zinc-500">Use links como <code className="rounded bg-white/5 px-1">farmops3d.vercel.app/?origem=reels1</code> em cada anúncio ou post.</p>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wider text-zinc-500">
+                <th className="px-5 py-2 font-medium">Origem</th>
+                <th className="px-3 py-2 text-right font-medium">Cadastros</th>
+                <th className="px-3 py-2 text-right font-medium">Últimos 7 dias</th>
+                <th className="px-5 py-2 text-right font-medium">Pro pagos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {porOrigem.map(([origem, v]) => (
+                <tr key={origem} className="border-t border-white/5">
+                  <td className="px-5 py-2.5 font-mono text-xs text-zinc-300">{origem}</td>
+                  <td className="px-3 py-2.5 text-right">{v.total}</td>
+                  <td className="px-3 py-2.5 text-right text-zinc-400">{v.ultimos7}</td>
+                  <td className="px-5 py-2.5 text-right font-semibold text-brand-300">{v.pagos}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
       <Card className="mt-6">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 p-5">
           <h2 className="font-display text-lg font-semibold">Assinaturas</h2>
@@ -117,6 +161,7 @@ export default function Admin() {
                     <td className="px-5 py-3">
                       <p className="font-medium text-zinc-100">{a.email}</p>
                       <p className="text-xs text-zinc-500">{a.empresa ?? 'sem perfil'} · desde {data(a.criado_em)} · último acesso {data(a.ultimo_acesso)}</p>
+                      {a.origem && <p className="mt-0.5 font-mono text-[11px] text-brand-300/80">origem: {a.origem}</p>}
                     </td>
                     <td className="px-3 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${a.plano === 'pro' ? 'bg-brand-500/15 text-brand-200 ring-brand-400/30' : 'bg-white/5 text-zinc-400 ring-white/10'}`}>

@@ -6,9 +6,13 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { ToastProvider } from './components/ui/Toast'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { capturarOrigem } from './lib/origem'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/space-grotesk'
 import './index.css'
+
+// Guarda de qual anúncio/post a pessoa veio (antes do React mexer na URL)
+capturarOrigem()
 
 const queryClient = new QueryClient({
   defaultOptions: {

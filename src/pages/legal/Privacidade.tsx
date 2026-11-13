@@ -73,6 +73,7 @@ export default function Privacidade() {
               <><strong>Arquivos que você importa:</strong> planilhas são lidas no seu próprio navegador. Só o que você confirmar na revisão é gravado; o arquivo em si não é enviado nem guardado.</>,
               <><strong>Dados técnicos e de segurança:</strong> endereço IP, data e hora de acesso, eventos de login e informações básicas do navegador, registrados pelos nossos provedores de infraestrutura.</>,
               <><strong>Armazenamento local:</strong> sessão de login e preferências no seu navegador, detalhados na <Link to="/cookies" className="text-brand-300 hover:underline">Política de Cookies</Link>.</>,
+              <><strong>Origem do cadastro:</strong> de qual link de divulgação você chegou (por exemplo, um post ou anúncio), guardada junto da conta para avaliarmos nossas divulgações. Não usamos pixels nem ferramentas de rastreamento de terceiros.</>,
               <><strong>Mensagens de suporte:</strong> o conteúdo e o e-mail de quem nos escreve.</>,
             ]}
           />

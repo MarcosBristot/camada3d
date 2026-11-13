@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { isDemo } from '../lib/api'
 import { DEMO_USER_ID } from '../lib/api/demoApi'
 import { LEGAL } from '../config/legal'
+import { lerOrigem } from '../lib/origem'
 import { supabase } from '../lib/supabase'
 
 export interface Usuario {
@@ -93,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password: senha,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
-            data: { termos_versao: LEGAL.versao, termos_aceitos_em: new Date().toISOString() },
+            data: { termos_versao: LEGAL.versao, termos_aceitos_em: new Date().toISOString(), origem: lerOrigem() },
           },
         })
         if (error) throw new Error(traduzir(error.message))

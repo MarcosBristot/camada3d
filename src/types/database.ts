@@ -376,6 +376,7 @@ export type Database = {
           user_id: string
           email: string
           empresa: string | null
+          origem: string | null
           criado_em: string
           ultimo_acesso: string | null
           plano: string
