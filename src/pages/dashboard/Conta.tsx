@@ -18,12 +18,13 @@ const dataHora = (iso: string | null) =>
 
 /** Monta um JSON com tudo o que o usuário tem no sistema (portabilidade, LGPD art. 18, V). */
 async function montarExportacao(conta: ReturnType<typeof useAuth>['user']) {
-  const [perfil, filamentos, produtos, vendas, despesas] = await Promise.all([
+  const [perfil, filamentos, produtos, pedidos, despesas, plano] = await Promise.all([
     api.obterPerfil(),
     api.listarFilamentos(),
     api.listarProdutos(),
-    api.listarVendas(),
+    api.listarPedidos(),
     api.listarDespesas(),
+    api.obterPlano(),
   ])
   return {
     servico: LEGAL.servico,
@@ -39,7 +40,8 @@ async function montarExportacao(conta: ReturnType<typeof useAuth>['user']) {
     perfil_empresa: perfil,
     filamentos,
     produtos,
-    pedidos: vendas.map(({ produtos: _rel, ...v }) => v),
+    plano: { plano: plano.plano, teste_ate: plano.testeAte, pro_ate: plano.proAte, periodo: plano.periodo },
+    pedidos: pedidos.map(({ itens, ...p }) => ({ ...p, itens: itens.map(({ produtos: _rel, ...i }) => (void _rel, i)) })),
     despesas_operacionais: despesas,
   }
 }

@@ -28,8 +28,9 @@ export default function Reembolso() {
           </p>
         ) : (
           <Destaque>
-            Hoje o {servico} é <strong>gratuito</strong>: não há cobrança e, portanto, nada a reembolsar. As regras abaixo passam a valer
-            automaticamente se planos pagos forem lançados, e nenhuma cobrança será feita sem o seu aceite expresso.
+            Hoje não há cobrança: o plano Free é gratuito e o Pro está disponível apenas no período de teste. As regras abaixo passam a valer
+            quando as assinaturas abrirem, e nenhuma cobrança será feita sem o seu aceite expresso. O teste grátis nunca vira cobrança
+            automática.
           </Destaque>
         )}
       </Secao>

@@ -25,6 +25,9 @@ export function IdentidadeVisual() {
   const notificar = useToast()
 
   const [nome, setNome] = useState('')
+  const [contato, setContato] = useState('')
+  const [cidade, setCidade] = useState('')
+  const [rodapeOs, setRodapeOs] = useState('')
   const [primaria, setPrimaria] = useState('#f97316')
   const [secundaria, setSecundaria] = useState('#fbbf24')
   const [modo, setModo] = useState<TemaPreferido>('escuro')
@@ -44,6 +47,9 @@ export function IdentidadeVisual() {
     carregado.current = true
     if (perfil) {
       setNome(perfil.nome)
+      setContato(perfil.contato ?? '')
+      setCidade(perfil.cidade ?? '')
+      setRodapeOs(perfil.rodape_os ?? '')
       setPrimaria(perfil.cor_primaria)
       setSecundaria(perfil.cor_secundaria)
       setModo(perfil.tema)
@@ -108,7 +114,7 @@ export function IdentidadeVisual() {
     if (!nome.trim()) return
     try {
       await salvar.mutateAsync({
-        input: { nome, cor_primaria: primaria, cor_secundaria: secundaria, tema: modo },
+        input: { nome, cor_primaria: primaria, cor_secundaria: secundaria, tema: modo, contato: contato.trim() || null, cidade: cidade.trim() || null, rodape_os: rodapeOs.trim() || null },
         logo: logo ? { nova: logo } : removerLogo ? { remover: true } : undefined,
       })
       setLogo(null)
@@ -175,6 +181,27 @@ export function IdentidadeVisual() {
               <p className="mt-2 text-xs text-zinc-500">PNG com fundo transparente funciona melhor. As cores são extraídas automaticamente.</p>
             </div>
           </div>
+
+          {/* Dados que aparecem na ordem de serviço */}
+          <div className="grid gap-3 sm:grid-cols-[1fr_200px]">
+            <Field label="Contato na ordem de serviço" htmlFor="empresa-contato" hint="Ex.: WhatsApp (51) 99999-9999 · @suaempresa">
+              <input id="empresa-contato" value={contato} onChange={(e) => setContato(e.target.value)} maxLength={200} className={inputCls} />
+            </Field>
+            <Field label="Cidade/UF" htmlFor="empresa-cidade">
+              <input id="empresa-cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} maxLength={80} placeholder="Porto Alegre/RS" className={inputCls} />
+            </Field>
+          </div>
+          <Field label="Texto padrão no rodapé da OS (opcional)" htmlFor="empresa-rodape" hint="Garantia, prazo de retirada, cuidados com a peça… Aparece em toda ordem de serviço.">
+            <textarea
+              id="empresa-rodape"
+              value={rodapeOs}
+              onChange={(e) => setRodapeOs(e.target.value)}
+              maxLength={800}
+              rows={3}
+              placeholder="Ex.: Peças em PLA não devem ficar expostas ao sol ou dentro do carro. Garantia de 30 dias contra defeitos de impressão."
+              className={`${inputCls} resize-y`}
+            />
+          </Field>
 
           {/* Cores */}
           <div>

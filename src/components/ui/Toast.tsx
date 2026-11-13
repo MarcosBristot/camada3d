@@ -27,7 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={notificar}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed bottom-24 right-4 z-[100] flex w-[min(92vw,380px)] flex-col gap-2 md:bottom-6">
+      <div aria-live="polite" className="pointer-events-none fixed bottom-24 right-4 z-[100] print:hidden flex w-[min(92vw,380px)] flex-col gap-2 md:bottom-6">
         <AnimatePresence initial={false}>
           {toasts.map((t) => (
             <motion.div

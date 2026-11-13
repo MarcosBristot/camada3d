@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion'
 import { CircleDollarSign, Plus, ReceiptText, TrendingDown, TrendingUp } from 'lucide-react'
 import { useCallback, useState, type ReactNode } from 'react'
-import { NovaVendaModal } from '../../components/dashboard/NovaVendaModal'
+import { NovoPedidoModal } from '../../components/dashboard/NovoPedidoModal'
 import { SalesHistory } from '../../components/dashboard/SalesHistory'
 import { Page, PageHeader, Skeleton } from '../../components/dashboard/bits'
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber'
 import { Button } from '../../components/ui/form'
-import { useResumo, useVendas } from '../../hooks/useData'
+import { useResumo, usePedidos } from '../../hooks/useData'
 import { formatBRL, formatNumber } from '../../lib/format'
 
 interface StatProps {
@@ -52,7 +52,7 @@ function StatCard({ label, value, icon, tone, sub, format, loading, index }: Sta
 
 export default function Overview() {
   const { data: r, isLoading } = useResumo()
-  const { data: vendas = [] } = useVendas()
+  const { data: vendas = [] } = usePedidos()
   const [aberto, setAberto] = useState(false)
   const fechar = useCallback(() => setAberto(false), [])
 
@@ -107,7 +107,7 @@ export default function Overview() {
         <SalesHistory />
       </div>
 
-      <NovaVendaModal open={aberto} onClose={fechar} />
+      <NovoPedidoModal open={aberto} onClose={fechar} />
     </Page>
   )
 }

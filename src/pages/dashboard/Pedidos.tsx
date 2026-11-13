@@ -1,15 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, CheckCheck, CircleDollarSign, Hammer, PackageCheck, Plus, Search, Truck, Undo2 } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCheck, CircleDollarSign, FileText, Hammer, PackageCheck, Plus, Search, Truck, Undo2 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { NovaVendaModal } from '../../components/dashboard/NovaVendaModal'
+import { Link, useSearchParams } from 'react-router-dom'
+import { NovoPedidoModal } from '../../components/dashboard/NovoPedidoModal'
 import { Card, EmptyState, Page, PageHeader, ProductThumb, Skeleton, StatusSelect } from '../../components/dashboard/bits'
 import { mensagemErro, useToast } from '../../components/ui/Toast'
 import { Button, inputCls } from '../../components/ui/form'
-import { useAtualizarPagamento, useAtualizarStatus, useVendas } from '../../hooks/useData'
+import { useAtualizarPagamento, useAtualizarStatus, usePedidos } from '../../hooks/useData'
 import { formatarData, hojeISO } from '../../lib/dates'
 import { formatBRL } from '../../lib/format'
-import type { StatusEntrega, VendaComProduto } from '../../types/database'
+import { formatarHoras, totaisDoPedido } from '../../lib/pedidos'
+import type { PedidoCompleto, StatusEntrega } from '../../types/database'
 
 type AbaId = 'fazer' | 'concluidos' | 'entregues'
 
@@ -48,16 +49,18 @@ function CartaoPedido({
   onPago,
   ocupado,
 }: {
-  v: VendaComProduto
+  v: PedidoCompleto
   onStatus: (s: StatusEntrega) => void
   onPago: () => void
   ocupado: boolean
 }) {
-  const nome = v.produtos?.nome ?? v.produto_nome ?? 'Produto removido'
   const acao = ACAO[v.status_entrega]
   const sub = SUBSTATUS[v.status_entrega]
-  const dias = diasDesde(v.data_venda)
-  const atrasado = v.status_entrega === 'pendente' || v.status_entrega === 'em_producao' ? dias >= 7 : false
+  const dias = diasDesde(v.data_pedido)
+  const emAberto = v.status_entrega === 'pendente' || v.status_entrega === 'em_producao'
+  const diasPrazo = v.prazo_entrega ? -diasDesde(v.prazo_entrega) : null
+  const atrasado = emAberto && (diasPrazo !== null ? diasPrazo < 0 : dias >= 7)
+  const t = totaisDoPedido(v)
 
   return (
     <motion.article
@@ -68,27 +71,43 @@ function CartaoPedido({
       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
       className="flex flex-col rounded-3xl border border-white/10 bg-zinc-900/60 p-4 transition-colors hover:border-white/20"
     >
-      <div className="flex gap-3">
-        <ProductThumb src={v.produtos?.foto_url} alt={nome} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="truncate font-medium leading-tight text-zinc-100" title={nome}>
-              {nome}
-              {v.quantidade > 1 && <span className="ml-1.5 text-sm font-semibold text-brand-300">×{v.quantidade}</span>}
-            </p>
-            {v.codigo && <span className="shrink-0 rounded-md bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">{v.codigo}</span>}
-          </div>
-          <p className="mt-0.5 truncate text-sm text-zinc-400">{v.cliente_nome}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-medium leading-tight text-zinc-100">{v.cliente_nome}</p>
           <p className="mt-0.5 text-xs text-zinc-500">
-            {formatarData(v.data_venda)} · {dias <= 0 ? 'hoje' : dias === 1 ? 'há 1 dia' : `há ${dias} dias`}
-            {atrasado && <span className="ml-1.5 font-medium text-red-300">· atenção</span>}
+            {formatarData(v.data_pedido)} · {dias <= 0 ? 'hoje' : dias === 1 ? 'há 1 dia' : `há ${dias} dias`}
           </p>
         </div>
+        <span className="shrink-0 rounded-md bg-white/5 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">{v.codigo}</span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2">
+      {/* Itens */}
+      <ul className="mt-3 space-y-1.5">
+        {v.itens.slice(0, 3).map((i) => (
+          <li key={i.id} className="flex items-center gap-2 text-sm">
+            <ProductThumb src={i.produtos?.foto_url} alt={i.produtos?.nome ?? i.produto_nome ?? ''} size="sm" />
+            <span className="min-w-0 flex-1 truncate text-zinc-300">{i.produtos?.nome ?? i.produto_nome ?? 'Produto removido'}</span>
+            <span className="shrink-0 text-xs font-semibold text-brand-300">×{i.quantidade}</span>
+          </li>
+        ))}
+        {v.itens.length > 3 && <li className="pl-12 text-xs text-zinc-500">+ {v.itens.length - 3} item(ns)</li>}
+      </ul>
+
+      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-500">
+        <span>{t.pecas} peça(s)</span>
+        {t.gramas > 0 && <span>{t.gramas.toLocaleString('pt-BR')} g</span>}
+        {t.horas > 0 && <span>{formatarHoras(t.horas)} de máquina</span>}
+        {v.prazo_entrega && (
+          <span className={`inline-flex items-center gap-1 ${atrasado ? 'font-semibold text-red-300' : ''}`}>
+            <CalendarClock size={11} /> {atrasado ? 'atrasado · ' : ''}entrega {formatarData(v.prazo_entrega)}
+          </span>
+        )}
+        {!v.prazo_entrega && atrasado && <span className="font-medium text-red-300">atenção: {dias} dias</span>}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-display text-lg font-semibold">{formatBRL(v.preco_final)}</span>
+          <span className="font-display text-lg font-semibold">{formatBRL(t.total)}</span>
           <motion.button
             whileTap={{ scale: 0.92 }}
             onClick={onPago}
@@ -116,6 +135,14 @@ function CartaoPedido({
             {v.status_entrega !== 'entregue' && <ArrowRight size={13} className="opacity-60" />}
           </Button>
         )}
+        <Link
+          to={`/dashboard/pedidos/${v.id}/os`}
+          title="Ordem de serviço"
+          aria-label={`Ordem de serviço de ${v.codigo}`}
+          className="rounded-xl p-2 text-zinc-400 ring-1 ring-white/10 transition hover:text-brand-300"
+        >
+          <FileText size={15} />
+        </Link>
         <StatusSelect value={v.status_entrega} onChange={onStatus} disabled={ocupado} />
       </div>
     </motion.article>
@@ -123,7 +150,8 @@ function CartaoPedido({
 }
 
 export default function Pedidos() {
-  const { data: vendas = [], isLoading, error } = useVendas()
+  const { data: vendas = [], isLoading, error } = usePedidos()
+
   const atualizar = useAtualizarStatus()
   const pagamento = useAtualizarPagamento()
   const notificar = useToast()
@@ -152,28 +180,30 @@ export default function Pedidos() {
       .filter((v) => !soAReceber || !v.pago)
       .filter((v) => {
         if (!q) return true
-        const nome = v.produtos?.nome ?? v.produto_nome ?? ''
-        return [v.cliente_nome, nome, v.codigo ?? ''].some((s) => s.toLowerCase().includes(q))
+        return [v.cliente_nome, v.codigo, ...v.itens.map((i) => i.produtos?.nome ?? i.produto_nome ?? '')].some((s) => s.toLowerCase().includes(q))
       })
       .sort((a, b) =>
         // fila de produção: mais antigos primeiro; entregues: mais recentes primeiro
-        aba === 'entregues' ? b.data_venda.localeCompare(a.data_venda) : a.data_venda.localeCompare(b.data_venda) || (a.codigo ?? '').localeCompare(b.codigo ?? ''),
+        // fila: prazo mais próximo primeiro (sem prazo vai pelo mais antigo); entregues: mais recentes primeiro
+        aba === 'entregues'
+          ? b.data_pedido.localeCompare(a.data_pedido)
+          : (a.prazo_entrega ?? '9999').localeCompare(b.prazo_entrega ?? '9999') || a.data_pedido.localeCompare(b.data_pedido) || a.codigo.localeCompare(b.codigo),
       )
   }, [vendas, aba, busca, soAReceber])
 
   const aReceber = useMemo(
-    () => lista.filter((v) => !v.pago).reduce((t, v) => t + v.preco_final, 0),
+    () => lista.filter((v) => !v.pago).reduce((t, v) => t + totaisDoPedido(v).total, 0),
     [lista],
   )
 
-  const mudarStatus = (v: VendaComProduto, status: StatusEntrega) => {
+  const mudarStatus = (v: PedidoCompleto, status: StatusEntrega) => {
     setOcupado(v.id)
     atualizar.mutate(
       { id: v.id, status },
       {
         onSuccess: () => {
           const destino = ABAS.find((a) => a.status.includes(status))
-          if (destino && destino.id !== aba) notificar('sucesso', `${v.codigo ?? 'Pedido'} movido para "${destino.label}".`)
+          if (destino && destino.id !== aba) notificar('sucesso', `${v.codigo} movido para "${destino.label}".`)
         },
         onError: (e) => notificar('erro', mensagemErro(e)),
         onSettled: () => setOcupado(null),
@@ -181,7 +211,7 @@ export default function Pedidos() {
     )
   }
 
-  const alternarPago = (v: VendaComProduto) => {
+  const alternarPago = (v: PedidoCompleto) => {
     setOcupado(v.id)
     pagamento.mutate(
       { id: v.id, pago: !v.pago },
@@ -277,7 +307,7 @@ export default function Pedidos() {
         )}
       </div>
 
-      <NovaVendaModal open={novaVenda} onClose={fecharNova} />
+      <NovoPedidoModal open={novaVenda} onClose={fecharNova} />
     </Page>
   )
 }

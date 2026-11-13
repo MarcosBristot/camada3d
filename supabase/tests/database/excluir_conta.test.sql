@@ -15,7 +15,7 @@ set local "request.jwt.claims" to '{"sub":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 insert into public.perfil_empresa (nome) values ('Empresa A');
 insert into public.filamentos (cor, preco_kg) values ('Preto', 129);
 insert into public.produtos (id, nome, peso_gramas) values ('11111111-1111-1111-1111-111111111111', 'Peça A', 10);
-insert into public.vendas (produto_id, cliente_nome, preco_final) values ('11111111-1111-1111-1111-111111111111', 'Cliente', 10);
+select public.criar_pedido('{"codigo":"PED-1","cliente_nome":"Cliente"}'::jsonb, '[{"produto_id":"11111111-1111-1111-1111-111111111111","quantidade":1,"preco_final":10}]'::jsonb);
 insert into public.despesas_operacionais (descricao, valor) values ('Bico', 30);
 
 -- Dados de B
@@ -35,7 +35,9 @@ reset role;
 select is((select count(*) from auth.users where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'), 0::bigint, 'usuário A removido de auth.users');
 select is(
   (select count(*) from public.produtos where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
-  + (select count(*) from public.vendas where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  + (select count(*) from public.pedidos where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  + (select count(*) from public.pedido_itens where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+  + (select count(*) from public.assinaturas where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
   + (select count(*) from public.despesas_operacionais where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
   + (select count(*) from public.filamentos where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
   + (select count(*) from public.perfil_empresa where user_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),

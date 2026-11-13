@@ -141,8 +141,13 @@ body {
   }
 }
 
-/* Impressão dos documentos legais: fundo branco e texto preto */
+/* Impressão: folha A4 e documentos legais em papel branco */
+@page {
+  size: A4;
+  margin: 12mm;
+}
 @media print {
+  .os-folha img { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   html, body { background: #fff !important; color: #000 !important; }
   .legal, .legal * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
 }

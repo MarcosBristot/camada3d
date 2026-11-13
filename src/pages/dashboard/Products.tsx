@@ -3,7 +3,7 @@ import { Clock, Package, Plus, Search, ShoppingCart, Trash2, Weight } from 'luci
 import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FotoProduto } from '../../components/dashboard/FotoProduto'
-import { NovaVendaModal } from '../../components/dashboard/NovaVendaModal'
+import { NovoPedidoModal } from '../../components/dashboard/NovoPedidoModal'
 import { Card, EmptyState, Page, PageHeader, Skeleton } from '../../components/dashboard/bits'
 import { ConfirmButton, inputCls } from '../../components/ui/form'
 import { mensagemErro, useToast } from '../../components/ui/Toast'
@@ -165,7 +165,7 @@ export default function Products() {
         </motion.div>
       )}
 
-      <NovaVendaModal open={vender !== null} onClose={fechar} produtoInicialId={vender} />
+      <NovoPedidoModal open={vender !== null} onClose={fechar} produtoInicialId={vender} />
     </Page>
   )
 }

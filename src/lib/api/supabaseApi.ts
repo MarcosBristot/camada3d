@@ -1,20 +1,45 @@
-import type { VendaComProduto } from '../../types/database'
+import type { Json, PedidoCompleto } from '../../types/database'
 import { executarImportacao } from '../importacao/executar'
 import { removerFotoProduto, uploadFotoProduto } from '../storage'
 import { getSupabase } from '../supabase'
-import type { DataApi, PrimitivasImportacao } from './types'
+import type { DataApi, NovoPedidoInput, PrimitivasImportacao } from './types'
 
-function falha(error: { message: string } | null): asserts error is null {
-  if (error) throw new Error(error.message)
+/** Campos do produto que a OS e as listas precisam */
+const SELECT_PEDIDO = '*, itens:pedido_itens(*, produtos(nome, foto_url, material, cor, peso_gramas, tempo_maquina_horas, categoria))'
+
+/** Erros do banco em português; "LIMITE_PLANO: ..." vem dos limites do plano Free */
+function traduzirErro(error: { message: string; code?: string }): Error {
+  if (error.message.startsWith('LIMITE_PLANO:')) {
+    const texto = error.message.replace('LIMITE_PLANO:', '').trim()
+    const e = new Error(texto.charAt(0).toUpperCase() + texto.slice(1))
+    e.name = 'LimitePlano'
+    return e
+  }
+  if (error.code === '23505' && /pedidos_codigo_unico/.test(error.message)) return new Error('Já existe um pedido com esse código.')
+  return new Error(error.message)
+}
+
+async function rpcCriarPedido(input: NovoPedidoInput): Promise<string> {
+  const { itens, ...pedido } = input
+  const { data, error } = await getSupabase().rpc('criar_pedido', {
+    pedido: pedido as unknown as Json,
+    itens: itens as unknown as Json,
+  })
+  if (error) throw traduzirErro(error)
+  return data as string
+}
+
+function falha(error: { message: string; code?: string } | null): asserts error is null {
+  if (error) throw traduzirErro(error)
 }
 
 const primitivas: PrimitivasImportacao = {
   listarFilamentos: () => supabaseApi.listarFilamentos(),
   listarProdutos: () => supabaseApi.listarProdutos(),
-  async listarCodigosVenda() {
-    const { data, error } = await getSupabase().from('vendas').select('codigo').not('codigo', 'is', null)
+  async listarCodigosPedido() {
+    const { data, error } = await getSupabase().from('pedidos').select('codigo')
     falha(error)
-    return (data ?? []).map((r) => r.codigo as string)
+    return (data ?? []).map((r) => r.codigo)
   },
   listarDespesas: () => supabaseApi.listarDespesas(),
   async inserirFilamentos(rows) {
@@ -27,11 +52,13 @@ const primitivas: PrimitivasImportacao = {
     falha(error)
     return data ?? []
   },
-  async inserirVendas(rows) {
-    // custo_total omitido em todas: o trigger congela custo_base x quantidade
-    const { error, count } = await getSupabase().from('vendas').insert(rows, { count: 'exact' })
-    falha(error)
-    return count ?? rows.length
+  async inserirPedidos(rows) {
+    let n = 0
+    for (const r of rows) {
+      await rpcCriarPedido(r)
+      n++
+    }
+    return n
   },
   async inserirDespesas(rows) {
     const { error, count } = await getSupabase().from('despesas_operacionais').insert(rows, { count: 'exact' })
@@ -99,36 +126,36 @@ export const supabaseApi: DataApi = {
     return data
   },
 
-  async listarVendas() {
+  async listarPedidos() {
     const { data, error } = await getSupabase()
-      .from('vendas')
-      .select('*, produtos(nome, foto_url)')
-      .order('data_venda', { ascending: false })
+      .from('pedidos')
+      .select(SELECT_PEDIDO)
+      .order('data_pedido', { ascending: false })
       .order('created_at', { ascending: false })
     falha(error)
-    return (data ?? []) as VendaComProduto[]
+    return (data ?? []) as unknown as PedidoCompleto[]
   },
 
-  async criarVenda(input) {
-    // custo_total omitido: o trigger do banco congela custo_base * quantidade
-    const { data, error } = await getSupabase().from('vendas').insert(input).select().single()
-    if (error?.code === '23505') throw new Error(`Já existe um pedido com o código ${input.codigo}.`)
+  async obterPedido(id) {
+    const { data, error } = await getSupabase().from('pedidos').select(SELECT_PEDIDO).eq('id', id).maybeSingle()
     falha(error)
-    return data!
+    return (data ?? null) as unknown as PedidoCompleto | null
   },
 
-  async atualizarStatusVenda(id, status) {
-    const { error } = await getSupabase().from('vendas').update({ status_entrega: status }).eq('id', id)
-    falha(error)
-  },
+  criarPedido: (input) => rpcCriarPedido(input),
 
-  async atualizarPagamento(id, pago) {
-    const { error } = await getSupabase().from('vendas').update({ pago }).eq('id', id)
+  async atualizarStatusPedido(id, status) {
+    const { error } = await getSupabase().from('pedidos').update({ status_entrega: status }).eq('id', id)
     falha(error)
   },
 
-  async excluirVenda(id) {
-    const { error } = await getSupabase().from('vendas').delete().eq('id', id)
+  async atualizarPagamentoPedido(id, pago) {
+    const { error } = await getSupabase().from('pedidos').update({ pago }).eq('id', id)
+    falha(error)
+  },
+
+  async excluirPedido(id) {
+    const { error } = await getSupabase().from('pedidos').delete().eq('id', id)
     falha(error)
   },
 
@@ -247,5 +274,54 @@ export const supabaseApi: DataApi = {
       gastosTotal: n(data?.gastos_total),
       lucroLiquido: n(data?.lucro_liquido),
     }
+  },
+
+  async obterPlano() {
+    const sb = getSupabase()
+    const inicioMes = new Date()
+    inicioMes.setUTCDate(1)
+    inicioMes.setUTCHours(0, 0, 0, 0)
+    const [plano, assinatura, produtos, pedidos] = await Promise.all([
+      sb.rpc('plano_efetivo'),
+      sb.from('assinaturas').select('*').maybeSingle(),
+      sb.from('produtos').select('id', { count: 'exact', head: true }),
+      sb.from('pedidos').select('id', { count: 'exact', head: true }).gte('created_at', inicioMes.toISOString()),
+    ])
+    falha(plano.error)
+    falha(assinatura.error)
+    const a = assinatura.data
+    const agora = Date.now()
+    const pagoAtivo = !!a?.pro_ate && new Date(a.pro_ate).getTime() > agora
+    return {
+      plano: plano.data === 'pro' ? 'pro' : 'free',
+      emTeste: plano.data === 'pro' && !pagoAtivo,
+      testeAte: a?.teste_ate ?? null,
+      proAte: a?.pro_ate ?? null,
+      periodo: a?.periodo ?? null,
+      uso: { produtos: produtos.count ?? 0, pedidosMes: pedidos.count ?? 0 },
+    }
+  },
+
+  async ehAdmin() {
+    const { data, error } = await getSupabase().rpc('eh_admin')
+    if (error) return false
+    return !!data
+  },
+
+  async adminListarAssinaturas() {
+    const { data, error } = await getSupabase().rpc('admin_listar_assinaturas')
+    falha(error)
+    return data ?? []
+  },
+
+  async adminEstenderPro(userId, dias, periodo, nota) {
+    const { data, error } = await getSupabase().rpc('admin_estender_pro', {
+      alvo: userId,
+      dias,
+      novo_periodo: periodo ?? undefined,
+      nota: nota ?? undefined,
+    })
+    falha(error)
+    return data as string
   },
 }

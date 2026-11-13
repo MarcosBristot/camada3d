@@ -6,6 +6,7 @@ import { Hero } from '../components/landing/Hero'
 import { HowItWorks } from '../components/landing/HowItWorks'
 import { MaterialsMarquee } from '../components/landing/MaterialsMarquee'
 import { Navbar } from '../components/landing/Navbar'
+import { Planos } from '../components/landing/Planos'
 import { PricingPreview } from '../components/landing/PricingPreview'
 
 export default function Landing() {
@@ -26,6 +27,7 @@ export default function Landing() {
         <Features />
         <HowItWorks />
         <PricingPreview />
+        <Planos />
         <FinalCTA />
       </main>
       <RodapeLegal />

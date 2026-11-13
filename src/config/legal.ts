@@ -52,7 +52,7 @@ export const LEGAL = {
   cobranca: {
     planosPagos: false,
     /** Empresa que processa pagamentos (quando houver), ex.: 'Stripe' ou 'Mercado Pago'. */
-    processadorPagamento: '',
+    processadorPagamento: 'Mercado Pago',
     /** Direito de arrependimento: 7 dias corridos (CDC, art. 49). Não reduza. */
     diasArrependimento: 7,
   },
@@ -88,7 +88,7 @@ export const LEGAL = {
   },
 
   /** Versão dos documentos. Mude a data e a versão sempre que alterar o conteúdo dos textos. */
-  versao: '1.1',
+  versao: '1.2',
   vigenciaDesde: '2026-11-13',
 }
 

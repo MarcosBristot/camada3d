@@ -1,11 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { Building2, Calculator, ClipboardList, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, UserRound, Wallet } from 'lucide-react'
+import { Building2, Calculator, ClipboardList, Crown, FlaskConical, LayoutDashboard, LogOut, Package, RotateCcw, ShieldCheck, Sparkles, UserRound, Wallet } from 'lucide-react'
 import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTema } from '../../contexts/ThemeContext'
-import { usePerfil, useSalvarPerfil } from '../../hooks/useData'
+import { PLANOS } from '../../config/planos'
+import { useEhAdmin, usePerfil, usePlano, useSalvarPerfil } from '../../hooks/useData'
 import { reiniciarDemo } from '../../lib/api/demoApi'
 import { Logo } from '../ui/Logo'
 import { ThemeToggle } from '../ui/ThemeToggle'
@@ -37,11 +38,33 @@ function Marca() {
   )
 }
 
+/** Aviso discreto: teste do Pro acabando ou Free perto do limite */
+function AvisoPlano() {
+  const { data: info } = usePlano()
+  if (!info) return null
+  const diasTeste = info.testeAte ? Math.ceil((new Date(info.testeAte).getTime() - Date.now()) / 86400000) : 0
+  const { produtos, pedidosMes } = PLANOS.free.limites
+  const pertoLimite = info.plano === 'free' && (info.uso.produtos >= produtos * 0.8 || info.uso.pedidosMes >= pedidosMes * 0.8)
+  let texto: string | null = null
+  if (info.emTeste && diasTeste <= 5) texto = `Seu teste do Pro termina em ${diasTeste} dia(s). Depois a conta volta para o Free, sem cobrança.`
+  else if (pertoLimite) texto = `Plano Free: ${info.uso.produtos}/${produtos} produtos e ${info.uso.pedidosMes}/${pedidosMes} pedidos este mês.`
+  if (!texto) return null
+  return (
+    <NavLink to="/dashboard/plano" className="mb-6 flex items-center gap-3 rounded-2xl bg-brand-500/10 px-4 py-3 text-sm ring-1 ring-brand-400/25 transition hover:bg-brand-500/15">
+      <Sparkles size={16} className="shrink-0 text-brand-300" />
+      <span className="flex-1 text-zinc-200">{texto}</span>
+      <span className="shrink-0 font-semibold text-brand-300">Ver planos →</span>
+    </NavLink>
+  )
+}
+
 export function DashboardLayout() {
   const { user, demo, sair } = useAuth()
   const qc = useQueryClient()
   const { pathname } = useLocation()
   const { data: perfil } = usePerfil()
+  const { data: info } = usePlano()
+  const { data: ehAdmin } = useEhAdmin()
   const salvarPerfil = useSalvarPerfil()
   const { definirTema } = useTema()
 
@@ -107,6 +130,29 @@ export function DashboardLayout() {
           ))}
         </nav>
 
+        <nav className="mt-6 flex flex-col gap-1 border-t border-white/5 pt-6">
+          <NavLink
+            to="/dashboard/plano"
+            className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-white/[0.06] text-zinc-50' : 'text-zinc-400 hover:text-zinc-100'}`}
+          >
+            <Crown size={18} className="text-brand-400" />
+            <span className="flex-1">Plano</span>
+            {info && (
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${info.plano === 'pro' ? 'bg-brand-500 text-brand-fg' : 'bg-white/10 text-zinc-300'}`}>
+                {info.plano === 'pro' ? (info.emTeste ? 'Teste' : 'Pro') : 'Free'}
+              </span>
+            )}
+          </NavLink>
+          {ehAdmin && (
+            <NavLink
+              to="/dashboard/admin"
+              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium ${isActive ? 'bg-white/[0.06] text-zinc-50' : 'text-zinc-400 hover:text-zinc-100'}`}
+            >
+              <ShieldCheck size={18} /> Administração
+            </NavLink>
+          )}
+        </nav>
+
         <div className="mt-auto space-y-3">
           <nav aria-label="Documentos" className="flex flex-wrap gap-x-3 gap-y-1 px-3 text-[11px] text-zinc-600">
             <NavLink to="/termos" target="_blank" className="hover:text-zinc-400">Termos</NavLink>
@@ -149,6 +195,11 @@ export function DashboardLayout() {
               <FlaskConical size={12} /> Demo
             </span>
           )}
+          {info && (
+            <NavLink to="/dashboard/plano" className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${info.plano === 'pro' ? 'bg-brand-500 text-brand-fg' : 'bg-white/10 text-zinc-300'}`}>
+              {info.plano === 'pro' ? (info.emTeste ? 'Teste' : 'Pro') : 'Free'}
+            </NavLink>
+          )}
           <ThemeToggle onChange={persistirModo} />
           <NavLink to="/dashboard/conta" aria-label="Conta e privacidade" className="rounded-lg p-2 text-zinc-400">
             <UserRound size={18} />
@@ -163,6 +214,7 @@ export function DashboardLayout() {
 
       <main className="px-4 pb-28 pt-6 sm:px-6 lg:ml-64 lg:px-10 lg:pb-12 lg:pt-10">
         <div key={pathname} className="mx-auto max-w-6xl">
+          <AvisoPlano />
           <Outlet />
         </div>
       </main>

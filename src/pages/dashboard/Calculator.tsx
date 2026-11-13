@@ -10,6 +10,7 @@ import { useCriarProduto, useFilamentos, useProdutos } from '../../hooks/useData
 import { formatBRL, formatNumber } from '../../lib/format'
 import { comprimirImagem } from '../../lib/image'
 import { MATERIAIS } from '../../lib/labels'
+import { ehErroDeLimite } from '../../lib/pedidos'
 import { calcularPreco } from '../../lib/pricing'
 
 const PREFS_KEY = 'camada3d-calc-prefs'
@@ -150,7 +151,7 @@ export default function Calculator() {
       setFoto(null)
       setTentouSalvar(false)
     } catch (err) {
-      notificar('erro', mensagemErro(err))
+      notificar('erro', ehErroDeLimite(err) ? `${mensagemErro(err)} Veja em "Plano", no menu.` : mensagemErro(err))
     }
   }
 

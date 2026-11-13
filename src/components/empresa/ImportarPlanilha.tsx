@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, CheckCircle2, ChevronDown, FileSpreadsheet, Upload, X } from 'lucide-react'
 import { useState, type DragEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { useImportar } from '../../hooks/useData'
+import { useImportar, usePlano } from '../../hooks/useData'
 import type { ResultadoImportacao } from '../../lib/api'
 import { formatarData } from '../../lib/dates'
 import { formatBRL, formatNumber } from '../../lib/format'
@@ -47,6 +47,8 @@ const Aviso = ({ texto }: { texto?: string }) =>
 const th = 'sticky top-0 bg-zinc-900 px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-zinc-500'
 const td = 'px-3 py-2 align-top'
 
+const planoInfoFree = (p: string | undefined) => p === 'free'
+
 export function ImportarPlanilha() {
   const [arquivo, setArquivo] = useState<string | null>(null)
   const [plano, setPlano] = useState<PlanoImportacao | null>(null)
@@ -54,6 +56,8 @@ export function ImportarPlanilha() {
   const [arrastando, setArrastando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoImportacao | null>(null)
   const importar = useImportar()
+  const { data: infoPlano } = usePlano()
+  const planoAtual = infoPlano?.plano
   const notificar = useToast()
 
   const ler = async (f: File | undefined) => {
@@ -122,7 +126,14 @@ export function ImportarPlanilha() {
       </div>
 
       <div className="space-y-5 p-6">
-        {!plano && (
+        {planoInfoFree(planoAtual) && (
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-brand-500/10 px-4 py-4 text-sm ring-1 ring-brand-400/25">
+            <span className="flex-1 text-zinc-200">A importação de planilhas faz parte do plano Pro. No Free, cadastre pela calculadora.</span>
+            <Link to="/dashboard/plano" className="font-semibold text-brand-300 hover:underline">Ver o Pro →</Link>
+          </div>
+        )}
+
+        {!plano && !planoInfoFree(planoAtual) && (
           <label
             onDragOver={(e) => { e.preventDefault(); setArrastando(true) }}
             onDragLeave={() => setArrastando(false)}

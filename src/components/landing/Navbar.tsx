@@ -9,6 +9,7 @@ const links = [
   { href: '#funcionalidades', label: 'Funcionalidades' },
   { href: '#como-funciona', label: 'Como funciona' },
   { href: '#precificacao', label: 'Precificação' },
+  { href: '#planos', label: 'Planos' },
 ]
 
 export function Navbar() {

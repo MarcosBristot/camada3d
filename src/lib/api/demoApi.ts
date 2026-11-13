@@ -3,20 +3,21 @@
  * Reproduz as regras do banco (colunas geradas, trigger de custo, view de resumo,
  * unicidade de código de pedido e filamento) para que a experiência seja igual à do Supabase.
  */
-import type { DespesaOperacional, Filamento, PerfilEmpresa, Produto, Venda, VendaComProduto } from '../../types/database'
+import type { DespesaOperacional, Filamento, Pedido, PedidoCompleto, PedidoItem, PerfilEmpresa, Produto, StatusEntrega } from '../../types/database'
 import { hojeISO } from '../dates'
 import { blobParaDataUrl } from '../image'
 import { executarImportacao } from '../importacao/executar'
 import { chave } from '../importacao/planilha'
 import { calcularPreco } from '../pricing'
-import type { DataApi, NovaVendaInput, NovoFilamentoInput, NovoProdutoInput, PrimitivasImportacao, Resumo } from './types'
+import type { DataApi, NovoFilamentoInput, NovoPedidoInput, NovoProdutoInput, PrimitivasImportacao, Resumo } from './types'
 
-const KEY = 'camada3d-demo-v2'
+const KEY = 'camada3d-demo-v3'
 export const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 interface DemoState {
   produtos: Produto[]
-  vendas: Venda[]
+  pedidos: Pedido[]
+  itens: PedidoItem[]
   despesas: DespesaOperacional[]
   filamentos: Filamento[]
   perfil: PerfilEmpresa | null
@@ -69,30 +70,6 @@ function montarProduto(input: NovoProdutoInput, extra: Partial<Produto> = {}): P
   }
 }
 
-function montarVenda(p: Produto, v: NovaVendaInput): Venda {
-  const custo = round2(p.custo_base * v.quantidade)
-  const ts = agora()
-  return {
-    id: crypto.randomUUID(),
-    user_id: DEMO_USER_ID,
-    produto_id: v.produto_id,
-    produto_nome: p.nome,
-    cliente_nome: v.cliente_nome.trim(),
-    data_venda: v.data_venda,
-    quantidade: v.quantidade,
-    preco_final: v.preco_final,
-    custo_total: custo,
-    lucro: round2(v.preco_final - custo),
-    status_entrega: v.status_entrega,
-    observacoes: v.observacoes ?? null,
-    codigo: v.codigo ?? null,
-    pago: v.pago ?? false,
-    forma_pagamento: v.forma_pagamento ?? null,
-    created_at: ts,
-    updated_at: ts,
-  }
-}
-
 function montarFilamento(f: NovoFilamentoInput): Filamento {
   const ts = agora()
   return { id: crypto.randomUUID(), user_id: DEMO_USER_ID, cor: f.cor, material: f.material, marca: f.marca ?? null, preco_kg: round2(f.preco_kg), created_at: ts, updated_at: ts }
@@ -107,17 +84,21 @@ function seed(): DemoState {
   const dragao = montarProduto({ ...base, nome: 'Miniatura dragão', material: 'Resina', categoria: 'Miniatura', preco_kg_material: 180, potencia_watts: 60, peso_gramas: 40, tempo_maquina_horas: 6, custo_adicional: 5, margem_lucro_pct: 200 })
   const organizador = montarProduto({ ...base, nome: 'Organizador de mesa', material: 'PLA', cor: 'Branco', categoria: 'Setup', filamento_id: branco.id, preco_kg_material: 90, potencia_watts: 130, peso_gramas: 210, tempo_maquina_horas: 9.5, margem_lucro_pct: 100, preco_venda: 50 })
 
-  const venda = (p: Produto, dias: number, cliente: string, qtd: number, preco: number, status: Venda['status_entrega'], pago: boolean, codigo: string) =>
-    montarVenda(p, { produto_id: p.id, cliente_nome: cliente, data_venda: hojeISO(dias), quantidade: qtd, preco_final: preco, status_entrega: status, pago, codigo, forma_pagamento: 'PIX' })
-
-  const vendas: Venda[] = [
-    venda(vaso, -1, 'Ana Ribeiro', 2, 65, 'em_producao', true, 'PED-005'),
-    venda(organizador, 0, 'Bruno Lima', 1, 50, 'pendente', false, 'PED-006'),
-    venda(dragao, -3, 'Loja Geek Mania', 3, 120, 'pronto', true, 'PED-004'),
-    venda(headset, -6, 'Carlos Mendes', 1, 55, 'entregue', true, 'PED-003'),
-    venda(organizador, -12, 'Juliana Costa', 1, 52, 'entregue', true, 'PED-002'),
-    venda(vaso, -20, 'Pedro Alves', 1, 30, 'cancelado', false, 'PED-001'),
-  ]
+  const pedidos: Pedido[] = []
+  const itens: PedidoItem[] = []
+  const estado = { produtos: [organizador, dragao, headset, vaso], pedidos, itens } as unknown as DemoState
+  const pedido = (codigo: string, cliente: string, dias: number, status: StatusEntrega, pago: boolean, linhas: [Produto, number, number][], extra: Partial<NovoPedidoInput> = {}) =>
+    inserirPedidoNoEstado(estado, {
+      codigo, cliente_nome: cliente, data_pedido: hojeISO(dias), status_entrega: status, pago, forma_pagamento: 'PIX', frete: 0, desconto: 0,
+      itens: linhas.map(([p, quantidade, preco_final]) => ({ produto_id: p.id, quantidade, preco_final })),
+      ...extra,
+    })
+  pedido('PED-006', 'Bruno Lima', 0, 'pendente', false, [[organizador, 1, 50], [vaso, 2, 60], [headset, 1, 55]], { frete: 18, desconto: 5, prazo_entrega: hojeISO(5), cliente_contato: '(51) 99999-0000' })
+  pedido('PED-005', 'Ana Ribeiro', -1, 'em_producao', true, [[vaso, 2, 65]])
+  pedido('PED-004', 'Loja Geek Mania', -3, 'pronto', true, [[dragao, 3, 120]])
+  pedido('PED-003', 'Carlos Mendes', -6, 'entregue', true, [[headset, 1, 55]])
+  pedido('PED-002', 'Juliana Costa', -12, 'entregue', true, [[organizador, 1, 52]])
+  pedido('PED-001', 'Pedro Alves', -20, 'cancelado', false, [[vaso, 1, 30]])
 
   const ts = agora()
   const despesas: DespesaOperacional[] = [
@@ -125,7 +106,7 @@ function seed(): DemoState {
     { id: crypto.randomUUID(), user_id: DEMO_USER_ID, descricao: 'Caixas e plástico bolha', categoria: 'embalagem', valor: 48.9, data_despesa: hojeISO(-15), created_at: ts, updated_at: ts },
   ]
 
-  return { produtos: [organizador, dragao, headset, vaso], vendas, despesas, filamentos: [branco, preto], perfil: null }
+  return { produtos: [organizador, dragao, headset, vaso], pedidos, itens, despesas, filamentos: [branco, preto], perfil: null }
 }
 
 function ler(): DemoState {
@@ -150,21 +131,55 @@ function salvar(s: DemoState) {
 
 export function reiniciarDemo(vazio = false) {
   const perfil = ler().perfil // mantém a identidade visual
-  salvar(vazio ? { produtos: [], vendas: [], despesas: [], filamentos: [], perfil } : { ...seed(), perfil })
+  salvar(vazio ? { produtos: [], pedidos: [], itens: [], despesas: [], filamentos: [], perfil } : { ...seed(), perfil })
 }
 
 const porDataDesc = <T extends { created_at: string }>(campo: keyof T) => (a: T, b: T) =>
   String(b[campo]).localeCompare(String(a[campo])) || b.created_at.localeCompare(a.created_at)
 
-function inserirVendaNoEstado(s: DemoState, input: NovaVendaInput): Venda {
-  const p = s.produtos.find((x) => x.id === input.produto_id)
-  if (!p) throw new Error('Produto não encontrado.')
-  if (input.codigo && s.vendas.some((v) => v.codigo && chave(v.codigo) === chave(input.codigo!))) {
-    throw new Error(`Já existe um pedido com o código ${input.codigo}.`)
+function inserirPedidoNoEstado(s: DemoState, input: NovoPedidoInput): string {
+  if (!input.itens.length) throw new Error('O pedido precisa de pelo menos um item.')
+  if (s.pedidos.some((v) => chave(v.codigo) === chave(input.codigo))) throw new Error('Já existe um pedido com esse código.')
+  const ts = agora()
+  const id = crypto.randomUUID()
+  const novosItens = input.itens.map<PedidoItem>((it) => {
+    const p = s.produtos.find((x) => x.id === it.produto_id)
+    if (!p) throw new Error('Produto não encontrado.')
+    if (it.quantidade < 1) throw new Error('Quantidade inválida.')
+    const custo = round2(p.custo_base * it.quantidade)
+    return {
+      id: crypto.randomUUID(), user_id: DEMO_USER_ID, pedido_id: id, produto_id: p.id, produto_nome: p.nome,
+      quantidade: it.quantidade, preco_final: round2(it.preco_final), custo_total: custo, lucro: round2(it.preco_final - custo),
+      created_at: ts, updated_at: ts,
+    }
+  })
+  s.pedidos.push({
+    id, user_id: DEMO_USER_ID, codigo: input.codigo.trim(), cliente_nome: input.cliente_nome.trim(),
+    cliente_contato: input.cliente_contato?.trim() || null, data_pedido: input.data_pedido, prazo_entrega: input.prazo_entrega || null,
+    status_entrega: input.status_entrega, pago: input.pago, forma_pagamento: input.forma_pagamento ?? null,
+    frete: round2(input.frete), desconto: round2(input.desconto), observacoes: input.observacoes?.trim() || null,
+    created_at: ts, updated_at: ts,
+  })
+  s.itens.push(...novosItens)
+  return id
+}
+
+function completar(s: DemoState, p: Pedido): PedidoCompleto {
+  const mapa = new Map(s.produtos.map((x) => [x.id, x]))
+  return {
+    ...p,
+    itens: s.itens
+      .filter((i) => i.pedido_id === p.id)
+      .map((i) => {
+        const prod = i.produto_id ? mapa.get(i.produto_id) : undefined
+        return {
+          ...i,
+          produtos: prod
+            ? { nome: prod.nome, foto_url: prod.foto_url, material: prod.material, cor: prod.cor, peso_gramas: prod.peso_gramas, tempo_maquina_horas: prod.tempo_maquina_horas, categoria: prod.categoria }
+            : null,
+        }
+      }),
   }
-  const v = montarVenda(p, input)
-  s.vendas.push(v)
-  return v
 }
 
 function inserirFilamentoNoEstado(s: DemoState, input: NovoFilamentoInput): Filamento {
@@ -178,7 +193,7 @@ function inserirFilamentoNoEstado(s: DemoState, input: NovoFilamentoInput): Fila
 const primitivas: PrimitivasImportacao = {
   listarFilamentos: async () => ler().filamentos,
   listarProdutos: async () => ler().produtos,
-  listarCodigosVenda: async () => ler().vendas.flatMap((v) => (v.codigo ? [v.codigo] : [])),
+  listarCodigosPedido: async () => ler().pedidos.map((v) => v.codigo),
   listarDespesas: async () => ler().despesas,
   async inserirFilamentos(rows) {
     const s = ler()
@@ -193,9 +208,9 @@ const primitivas: PrimitivasImportacao = {
     salvar(s)
     return out
   },
-  async inserirVendas(rows) {
+  async inserirPedidos(rows) {
     const s = ler()
-    rows.forEach((r) => inserirVendaNoEstado(s, r))
+    rows.forEach((r) => inserirPedidoNoEstado(s, r))
     salvar(s)
     return rows.length
   },
@@ -229,7 +244,7 @@ export const demoApi: DataApi = {
     const s = ler()
     s.produtos = s.produtos.filter((p) => p.id !== produto.id)
     // on delete set null — o histórico mantém produto_nome
-    s.vendas = s.vendas.map((v) => (v.produto_id === produto.id ? { ...v, produto_id: null } : v))
+    s.itens = s.itens.map((v) => (v.produto_id === produto.id ? { ...v, produto_id: null } : v))
     salvar(s)
   },
 
@@ -244,42 +259,46 @@ export const demoApi: DataApi = {
     return atualizado
   },
 
-  async listarVendas() {
+  async listarPedidos() {
     await espera()
     const s = ler()
-    const mapa = new Map(s.produtos.map((p) => [p.id, p]))
-    return [...s.vendas].sort(porDataDesc<Venda>('data_venda')).map<VendaComProduto>((v) => {
-      const p = v.produto_id ? mapa.get(v.produto_id) : undefined
-      return { ...v, produtos: p ? { nome: p.nome, foto_url: p.foto_url } : null }
-    })
+    return [...s.pedidos].sort(porDataDesc<Pedido>('data_pedido')).map((p) => completar(s, p))
   },
 
-  async criarVenda(input) {
+  async obterPedido(id) {
     await espera()
     const s = ler()
-    const v = inserirVendaNoEstado(s, input)
+    const p = s.pedidos.find((x) => x.id === id)
+    return p ? completar(s, p) : null
+  },
+
+  async criarPedido(input) {
+    await espera()
+    const s = ler()
+    const id = inserirPedidoNoEstado(s, input)
     salvar(s)
-    return v
+    return id
   },
 
-  async atualizarStatusVenda(id, status) {
+  async atualizarStatusPedido(id, status) {
     await espera()
     const s = ler()
-    s.vendas = s.vendas.map((v) => (v.id === id ? { ...v, status_entrega: status, updated_at: agora() } : v))
-    salvar(s)
-  },
-
-  async atualizarPagamento(id, pago) {
-    await espera()
-    const s = ler()
-    s.vendas = s.vendas.map((v) => (v.id === id ? { ...v, pago, updated_at: agora() } : v))
+    s.pedidos = s.pedidos.map((v) => (v.id === id ? { ...v, status_entrega: status, updated_at: agora() } : v))
     salvar(s)
   },
 
-  async excluirVenda(id) {
+  async atualizarPagamentoPedido(id, pago) {
     await espera()
     const s = ler()
-    s.vendas = s.vendas.filter((v) => v.id !== id)
+    s.pedidos = s.pedidos.map((v) => (v.id === id ? { ...v, pago, updated_at: agora() } : v))
+    salvar(s)
+  },
+
+  async excluirPedido(id) {
+    await espera()
+    const s = ler()
+    s.pedidos = s.pedidos.filter((v) => v.id !== id)
+    s.itens = s.itens.filter((v) => v.pedido_id !== id)
     salvar(s)
   },
 
@@ -335,6 +354,9 @@ export const demoApi: DataApi = {
     s.perfil = {
       user_id: DEMO_USER_ID,
       ...input,
+      contato: input.contato?.trim() || null,
+      cidade: input.cidade?.trim() || null,
+      rodape_os: input.rodape_os?.trim() || null,
       nome: input.nome.trim(),
       logo_url,
       logo_path: logo_url ? 'demo' : null,
@@ -359,18 +381,31 @@ export const demoApi: DataApi = {
   async resumo(): Promise<Resumo> {
     await espera()
     const s = ler()
-    const validas = s.vendas.filter((v) => v.status_entrega !== 'cancelado')
-    const faturamentoTotal = round2(validas.reduce((t, v) => t + v.preco_final, 0))
-    const custoProdutos = round2(validas.reduce((t, v) => t + v.custo_total, 0))
+    const validos = s.pedidos.filter((p) => p.status_entrega !== 'cancelado')
+    const ids = new Set(validos.map((p) => p.id))
+    const itens = s.itens.filter((i) => ids.has(i.pedido_id))
+    const faturamentoTotal = round2(itens.reduce((t, v) => t + v.preco_final, 0) - validos.reduce((t, p) => t + p.desconto, 0))
+    const custoProdutos = round2(itens.reduce((t, v) => t + v.custo_total, 0))
     const despesasOperacionais = round2(s.despesas.reduce((t, d) => t + d.valor, 0))
     const gastosTotal = round2(custoProdutos + despesasOperacionais)
     return {
-      totalVendas: validas.length,
+      totalVendas: validos.length,
       faturamentoTotal,
       custoProdutos,
       despesasOperacionais,
       gastosTotal,
       lucroLiquido: round2(faturamentoTotal - gastosTotal),
     }
+  },
+
+  // No modo demonstração tudo fica liberado (Pro) para a pessoa conhecer o sistema
+  async obterPlano() {
+    const s = ler()
+    return { plano: 'pro', emTeste: false, testeAte: null, proAte: null, periodo: 'demonstração', uso: { produtos: s.produtos.length, pedidosMes: s.pedidos.length } }
+  },
+  ehAdmin: async () => false,
+  adminListarAssinaturas: async () => [],
+  async adminEstenderPro() {
+    throw new Error('Indisponível no modo demonstração.')
   },
 }

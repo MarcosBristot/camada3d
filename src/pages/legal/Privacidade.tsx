@@ -68,7 +68,8 @@ export default function Privacidade() {
             itens={[
               <><strong>Cadastro:</strong> e-mail e senha. A senha é guardada com hash irreversível e nunca é visível para nós.</>,
               <><strong>Perfil da empresa:</strong> nome da empresa, logo, cores e preferência de tema.</>,
-              <><strong>Dados de operação que você cadastra:</strong> produtos, fotos de produtos, filamentos, preços, pedidos (incluindo nome do cliente, data, valores, forma e status de pagamento e observações) e despesas.</>,
+              <><strong>Dados de operação que você cadastra:</strong> produtos, fotos de produtos, filamentos, preços, pedidos (incluindo nome e contato do cliente, datas, itens, valores, frete, desconto, forma e status de pagamento e observações) e despesas.</>,
+              <><strong>Plano e assinatura:</strong> plano atual, datas do teste e do Pro, período contratado e anotações de pagamento (por exemplo, a data em que um Pix foi recebido). Comprovantes enviados por e-mail ficam na nossa caixa de e-mail.</>,
               <><strong>Arquivos que você importa:</strong> planilhas são lidas no seu próprio navegador. Só o que você confirmar na revisão é gravado; o arquivo em si não é enviado nem guardado.</>,
               <><strong>Dados técnicos e de segurança:</strong> endereço IP, data e hora de acesso, eventos de login e informações básicas do navegador, registrados pelos nossos provedores de infraestrutura.</>,
               <><strong>Armazenamento local:</strong> sessão de login e preferências no seu navegador, detalhados na <Link to="/cookies" className="text-brand-300 hover:underline">Política de Cookies</Link>.</>,
@@ -107,6 +108,11 @@ export default function Privacidade() {
               </tbody>
             </table>
           </div>
+          <p>
+            Para ativar assinaturas e dar suporte, o responsável pelo serviço consegue ver, de cada conta, o e-mail, o nome da empresa, as datas
+            de cadastro e último acesso, o plano e a <strong>quantidade</strong> de produtos e pedidos. Ele não usa essa visão para ler o conteúdo
+            dos seus pedidos ou dos seus clientes.
+          </p>
           <p>Não usamos seus dados para decisões automatizadas que afetem seus interesses, nem para criar perfis de marketing.</p>
         </Secao>
 

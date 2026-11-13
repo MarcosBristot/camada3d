@@ -190,6 +190,33 @@ Tudo certo? O site está pronto para receber pessoas. 🎉
 
 ---
 
+## Atualização: planos, pedidos com vários itens e ordem de serviço (migrations 4 e 5)
+
+> **Faça na ordem.** O código novo usa as tabelas novas: aplique as migrations **antes** do `git push`.
+
+1. Aplicar no Supabase da nuvem:
+   ```bash
+   npx supabase db query --remote --yes -f supabase/migrations/20261114000000_pedidos_itens_planos.sql
+   npx supabase db query --remote --yes -f supabase/migrations/20261114010000_perfil_contato_os.sql
+   npx supabase db query --remote --yes "insert into supabase_migrations.schema_migrations (version, statements, name) values ('20261114000000', '{}', 'pedidos_itens_planos'), ('20261114010000', '{}', 'perfil_contato_os') on conflict do nothing"
+   ```
+   O que muda: cada venda vira um **pedido** (mesmo código PED-xxx) com seus **itens**; toda conta ganha **14 dias de Pro**; os limites do Free passam a valer.
+2. Tornar-se **admin** e se dar **Pro permanente** (troque o e-mail pelo seu de login):
+   ```bash
+   npx supabase db query --remote --yes "insert into public.admins (user_id) select id from auth.users where email = 'SEU-EMAIL' on conflict do nothing"
+   npx supabase db query --remote --yes "update public.assinaturas set pro_ate = now() + interval '50 years', periodo = 'cortesia', observacao = 'dono' where user_id = (select id from auth.users where email = 'SEU-EMAIL')"
+   ```
+3. Conferir (deve mostrar 5 versões e o seu plano 'pro'):
+   ```bash
+   npx supabase db query --remote --read-only "select string_agg(version, ', ' order by version) as migrations from supabase_migrations.schema_migrations"
+   ```
+4. Só então: `git push` (a Vercel publica em ~1 min).
+5. No site: **Empresa** → preencha *Contato na ordem de serviço*, *Cidade* e o *Texto padrão do rodapé*; abra um pedido → ícone de documento → **Imprimir / PDF**.
+
+Plano comercial completo (preços, impostos como pessoa física, cobrança manual e captação de clientes): **[PLANO-DE-NEGOCIO.md](PLANO-DE-NEGOCIO.md)**.
+
+---
+
 ## Dia a dia
 
 ### Publicar uma atualização
@@ -271,10 +298,11 @@ Antes de cobrar qualquer valor:
 | Arquivo | Conteúdo |
 |---------|----------|
 | `src/config/legal.ts` | Nome, e-mail, fornecedores, prazos e versão dos documentos |
+| `src/config/planos.ts` | Preços, recursos de cada plano e links de pagamento |
 | `src/pages/legal/` | Textos dos Termos, Privacidade, Cookies, Reembolso e Contato |
 | `vercel.json` | Rotas, cache e cabeçalhos de segurança (CSP) |
-| `supabase/migrations/` | Estrutura do banco (3 migrations) |
-| `supabase/tests/` | Testes do banco (`npm run db:test`, 48 testes) |
+| `supabase/migrations/` | Estrutura do banco (5 migrations) |
+| `supabase/tests/` | Testes do banco (`npm run db:test`, 68 testes) |
 | `supabase/templates/` | E-mails em português |
 | `scripts/check-*.mjs` | Verificações automáticas do build de produção |
 | `.env` | URL e chave anon do Supabase da nuvem (**não vai para o GitHub**) |

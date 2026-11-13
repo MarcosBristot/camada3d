@@ -8,7 +8,7 @@
  *
  * Conferido contra `supabase gen types` do banco local. Diferenças intencionais:
  *  - colunas geradas são `number` (o gerador diz `number | null`, mas nunca são nulas aqui);
- *  - `vendas.Insert.custo_total` é opcional: o trigger `vendas_preencher_snapshot` o preenche.
+ *  - `pedido_itens.Insert.custo_total` é opcional: o trigger de snapshot o preenche.
  * Se regenerar com o CLI, reaplique esses dois ajustes.
  */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
@@ -114,60 +114,97 @@ export type Database = {
           },
         ]
       }
-      vendas: {
+      pedidos: {
         Row: {
           id: string
           user_id: string
-          produto_id: string | null
-          produto_nome: string | null
+          codigo: string
           cliente_nome: string
-          data_venda: string
-          quantidade: number
-          preco_final: number
-          custo_total: number
-          lucro: number
+          cliente_contato: string | null
+          data_pedido: string
+          prazo_entrega: string | null
           status_entrega: StatusEntrega
-          observacoes: string | null
-          codigo: string | null
           pago: boolean
           forma_pagamento: string | null
+          frete: number
+          desconto: number
+          observacoes: string | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id?: string
-          produto_id?: string | null
-          produto_nome?: string | null
+          codigo: string
           cliente_nome: string
-          data_venda?: string
-          quantidade?: number
-          preco_final: number
-          /** Omitido => banco usa produtos.custo_base * quantidade */
-          custo_total?: number | null
+          cliente_contato?: string | null
+          data_pedido?: string
+          prazo_entrega?: string | null
           status_entrega?: StatusEntrega
-          observacoes?: string | null
-          codigo?: string | null
           pago?: boolean
           forma_pagamento?: string | null
+          frete?: number
+          desconto?: number
+          observacoes?: string | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
+          codigo?: string
+          cliente_nome?: string
+          cliente_contato?: string | null
+          data_pedido?: string
+          prazo_entrega?: string | null
+          status_entrega?: StatusEntrega
+          pago?: boolean
+          forma_pagamento?: string | null
+          frete?: number
+          desconto?: number
+          observacoes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pedido_itens: {
+        Row: {
+          id: string
+          user_id: string
+          pedido_id: string
+          produto_id: string | null
+          produto_nome: string | null
+          quantidade: number
+          /** total do item (quantidade x preço unitário) */
+          preco_final: number
+          custo_total: number
+          lucro: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string
+          pedido_id: string
           produto_id?: string | null
           produto_nome?: string | null
-          cliente_nome?: string
-          data_venda?: string
+          quantidade?: number
+          preco_final: number
+          /** Omitido => banco usa produtos.custo_base * quantidade */
+          custo_total?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          pedido_id?: string
+          produto_id?: string | null
+          produto_nome?: string | null
           quantidade?: number
           preco_final?: number
           custo_total?: number
-          status_entrega?: StatusEntrega
-          observacoes?: string | null
-          codigo?: string | null
-          pago?: boolean
-          forma_pagamento?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -179,7 +216,28 @@ export type Database = {
             referencedRelation: 'produtos'
             referencedColumns: ['id']
           },
+          {
+            foreignKeyName: 'pedido_itens_pedido_id_fkey'
+            columns: ['pedido_id']
+            isOneToOne: false
+            referencedRelation: 'pedidos'
+            referencedColumns: ['id']
+          },
         ]
+      }
+      assinaturas: {
+        Row: {
+          user_id: string
+          teste_ate: string | null
+          pro_ate: string | null
+          periodo: 'mensal' | 'anual' | 'cortesia' | null
+          observacao: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: { user_id: string; teste_ate?: string | null; pro_ate?: string | null; periodo?: 'mensal' | 'anual' | 'cortesia' | null; observacao?: string | null }
+        Update: { teste_ate?: string | null; pro_ate?: string | null; periodo?: 'mensal' | 'anual' | 'cortesia' | null; observacao?: string | null }
+        Relationships: []
       }
       perfil_empresa: {
         Row: {
@@ -190,6 +248,9 @@ export type Database = {
           cor_primaria: string
           cor_secundaria: string
           tema: TemaPreferido
+          contato: string | null
+          cidade: string | null
+          rodape_os: string | null
           created_at: string
           updated_at: string
         }
@@ -201,6 +262,9 @@ export type Database = {
           cor_primaria?: string
           cor_secundaria?: string
           tema?: TemaPreferido
+          contato?: string | null
+          cidade?: string | null
+          rodape_os?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -212,6 +276,9 @@ export type Database = {
           cor_primaria?: string
           cor_secundaria?: string
           tema?: TemaPreferido
+          contato?: string | null
+          cidade?: string | null
+          rodape_os?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -300,6 +367,27 @@ export type Database = {
     }
     Functions: {
       excluir_minha_conta: { Args: Record<PropertyKey, never>; Returns: undefined }
+      criar_pedido: { Args: { pedido: Json; itens: Json }; Returns: string }
+      plano_efetivo: { Args: { uid?: string }; Returns: string }
+      eh_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      admin_listar_assinaturas: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          email: string
+          empresa: string | null
+          criado_em: string
+          ultimo_acesso: string | null
+          plano: string
+          teste_ate: string | null
+          pro_ate: string | null
+          periodo: string | null
+          observacao: string | null
+          produtos: number
+          pedidos_mes: number
+        }[]
+      }
+      admin_estender_pro: { Args: { alvo: string; dias: number; novo_periodo?: string; nota?: string }; Returns: string }
     }
     Enums: {
       status_entrega: StatusEntrega
@@ -319,15 +407,20 @@ export type Views<T extends keyof PublicSchema['Views']> = PublicSchema['Views']
 // Atalhos de domínio
 export type Produto = Tables<'produtos'>
 export type NovoProduto = TablesInsert<'produtos'>
-export type Venda = Tables<'vendas'>
-export type NovaVenda = TablesInsert<'vendas'>
+export type Pedido = Tables<'pedidos'>
+export type PedidoItem = Tables<'pedido_itens'>
+export type Assinatura = Tables<'assinaturas'>
+export type AssinaturaAdmin = Database['public']['Functions']['admin_listar_assinaturas']['Returns'][number]
 export type DespesaOperacional = Tables<'despesas_operacionais'>
 export type ResumoFinanceiro = Views<'resumo_financeiro'>
 export type PerfilEmpresa = Tables<'perfil_empresa'>
 export type Filamento = Tables<'filamentos'>
 export type NovoFilamento = TablesInsert<'filamentos'>
 
-/** Venda com o produto embutido: supabase.from('vendas').select('*, produtos(nome, foto_url)') */
-export type VendaComProduto = Venda & {
-  produtos: Pick<Produto, 'nome' | 'foto_url'> | null
+/** Item com dados do produto (para a ordem de serviço e as listas) */
+export type ItemComProduto = PedidoItem & {
+  produtos: Pick<Produto, 'nome' | 'foto_url' | 'material' | 'cor' | 'peso_gramas' | 'tempo_maquina_horas' | 'categoria'> | null
 }
+
+/** Pedido com todos os itens: supabase.from('pedidos').select('*, itens:pedido_itens(*, produtos(...))') */
+export type PedidoCompleto = Pedido & { itens: ItemComProduto[] }

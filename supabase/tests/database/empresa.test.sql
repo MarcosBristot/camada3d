@@ -44,15 +44,15 @@ select results_eq(
   'produto importado da planilha mantém custo e preço praticado'
 );
 
-insert into public.vendas (produto_id, cliente_nome, preco_final, codigo, pago, forma_pagamento)
-values ('11111111-1111-1111-1111-111111111111', 'Rafa', 15, 'PED-001', true, 'PIX');
+select public.criar_pedido('{"codigo":"PED-001","cliente_nome":"Rafa","pago":true,"forma_pagamento":"PIX"}'::jsonb,
+  '[{"produto_id":"11111111-1111-1111-1111-111111111111","quantidade":1,"preco_final":15}]'::jsonb);
 select results_eq(
-  $$select codigo, pago, forma_pagamento, lucro from vendas$$,
+  $$select p.codigo, p.pago, p.forma_pagamento, i.lucro from pedidos p join pedido_itens i on i.pedido_id = p.id$$,
   $$values ('PED-001'::text, true, 'PIX'::text, 13.41::numeric)$$,
-  'venda guarda código, pagamento e lucro'
+  'pedido guarda código, pagamento e lucro do item'
 );
 select throws_ok(
-  $$insert into public.vendas (produto_id, cliente_nome, preco_final, codigo) values ('11111111-1111-1111-1111-111111111111', 'X', 1, 'PED-001')$$,
+  $$select public.criar_pedido('{"codigo":"PED-001","cliente_nome":"X"}'::jsonb, '[{"produto_id":"11111111-1111-1111-1111-111111111111","quantidade":1,"preco_final":1}]'::jsonb)$$,
   '23505', null, 'código de pedido não se repete para o mesmo usuário'
 );
 
@@ -73,7 +73,7 @@ select throws_ok(
 -- B pode usar o mesmo código de pedido que A (é único por usuário)
 insert into public.produtos (id, nome, peso_gramas) values ('22222222-2222-2222-2222-222222222222', 'Peça B', 10);
 select lives_ok(
-  $$insert into public.vendas (produto_id, cliente_nome, preco_final, codigo) values ('22222222-2222-2222-2222-222222222222', 'Cliente B', 5, 'PED-001')$$,
+  $$select public.criar_pedido('{"codigo":"PED-001","cliente_nome":"Cliente B"}'::jsonb, '[{"produto_id":"22222222-2222-2222-2222-222222222222","quantidade":1,"preco_final":5}]'::jsonb)$$,
   'código de pedido é independente entre usuários'
 );
 

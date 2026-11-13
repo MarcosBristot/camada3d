@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Destaque, Email, LegalLayout, Lista, Secao } from '../../components/legal/LegalLayout'
 import { LEGAL, identificacao, textoForo } from '../../config/legal'
+import { PLANOS, formatarPreco } from '../../config/planos'
 
 const S = [
   { id: 'aceite', titulo: 'Aceite' },
@@ -96,6 +97,15 @@ export default function Termos() {
       </Secao>
 
       <Secao id={S[6].id} n={7} titulo={S[6].titulo}>
+        <p>
+          O {servico} tem dois planos: o <strong>Free</strong>, gratuito e sem prazo, com limite de {PLANOS.free.limites.produtos} produtos e{' '}
+          {PLANOS.free.limites.pedidosMes} pedidos por mês, e o <strong>Pro</strong>, pago, sem esses limites e com recursos extras (como
+          importação de planilhas e ordem de serviço sem o selo do {servico}). Os recursos de cada plano ficam descritos na página de planos.
+        </p>
+        <p>
+          Toda conta nova recebe <strong>{PLANOS.diasTeste} dias de Pro grátis</strong>. Ao fim do teste a conta passa automaticamente para o Free,{' '}
+          <strong>sem nenhuma cobrança</strong>. Nenhum dado é apagado por mudança de plano: os limites só valem para novos cadastros.
+        </p>
         {cobranca.planosPagos ? (
           <>
             <p>
@@ -103,13 +113,18 @@ export default function Termos() {
               {cobranca.processadorPagamento || 'um processador de pagamentos parceiro'}, e não guardamos dados completos de cartão.
             </p>
             <p>
-              Planos recorrentes são renovados automaticamente ao fim de cada período, até você cancelar. Reajustes de preço serão avisados com
+              Valores atuais do Pro: {formatarPreco(PLANOS.pro.precoMensal)} por mês ou {formatarPreco(PLANOS.pro.precoAnual)} por ano. A
+              assinatura mensal pelo {cobranca.processadorPagamento || 'processador de pagamentos'} é renovada automaticamente a cada mês até você
+              cancelar. O plano anual é pago à vista e não renova sozinho. O Pro é liberado em até 1 dia útil depois da confirmação do pagamento.
+            </p>
+            <p>
+              Se o pagamento não for renovado, a conta volta para o Free no vencimento, sem perda de dados. Reajustes de preço serão avisados com
               pelo menos 30 dias de antecedência e só valem a partir do próximo ciclo.
             </p>
           </>
         ) : (
           <p>
-            No momento o {servico} é oferecido <strong>sem cobrança</strong>. Se no futuro houver planos pagos, os valores e condições serão
+            No momento não há cobrança: as assinaturas do Pro ainda não estão abertas. Quando abrirem, os valores e condições serão
             apresentados antes de qualquer contratação, e nada será cobrado sem o seu aceite expresso.
           </p>
         )}

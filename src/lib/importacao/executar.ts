@@ -1,7 +1,7 @@
 import type {
   EntradaImportacao,
   NovaDespesaInput,
-  NovaVendaInput,
+  NovoPedidoInput,
   NovoFilamentoInput,
   NovoProdutoInput,
   PrimitivasImportacao,
@@ -14,7 +14,7 @@ import { chave, margemParaPreco } from './planilha'
  * Grava o plano revisado. É idempotente: rodar de novo com a mesma planilha não duplica
  *  - filamentos (mesma cor + material + marca),
  *  - produtos (mesmo nome),
- *  - vendas (mesmo código de pedido),
+ *  - pedidos (mesmo código, ex.: PED-001),
  *  - despesas (mesma descrição + valor).
  */
 export async function executarImportacao(e: EntradaImportacao, p: PrimitivasImportacao): Promise<ResultadoImportacao> {
@@ -66,27 +66,27 @@ export async function executarImportacao(e: EntradaImportacao, p: PrimitivasImpo
   const idPorNome = new Map([...prodExistentes, ...prodCriados].map((x) => [chave(x.nome), x.id]))
 
   // ----- Vendas -----
-  const codigos = new Set((await p.listarCodigosVenda()).map((c) => chave(c)))
-  const novasV: NovaVendaInput[] = []
+  const codigos = new Set((await p.listarCodigosPedido()).map((c) => chave(c)))
+  const novasV: NovoPedidoInput[] = []
   for (const v of e.vendas) {
     if (v.codigo && codigos.has(chave(v.codigo))) continue
     const produtoId = idPorNome.get(chave(v.produto))
     if (!produtoId) continue // produto desmarcado na revisão
-    if (v.codigo) codigos.add(chave(v.codigo))
+    const codigo = v.codigo ?? `PLAN-${v.linha}`
+    codigos.add(chave(codigo))
     novasV.push({
-      produto_id: produtoId,
+      codigo,
       cliente_nome: v.cliente,
-      data_venda: v.data,
-      quantidade: v.quantidade,
-      preco_final: v.total,
+      data_pedido: v.data,
       status_entrega: v.status,
-      codigo: v.codigo,
       pago: v.pago,
       forma_pagamento: v.formaPagamento,
-      observacoes: null,
+      frete: 0,
+      desconto: 0,
+      itens: [{ produto_id: produtoId, quantidade: v.quantidade, preco_final: v.total }],
     })
   }
-  const vendasCriadas = novasV.length ? await p.inserirVendas(novasV) : 0
+  const vendasCriadas = novasV.length ? await p.inserirPedidos(novasV) : 0
 
   // ----- Despesas (Marketing) -----
   const kD = (d: string, valor: number) => `${chave(d)}|${valor.toFixed(2)}`
